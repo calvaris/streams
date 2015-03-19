@@ -213,7 +213,7 @@
             return;
         }
 
-        testFunction();
+        return testFunction;
     };
 
     AsyncTest.prototype.done = function()
