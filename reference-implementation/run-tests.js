@@ -16,4 +16,6 @@ global.TransformStream = TransformStream;
 global.ReadableByteStream = ReadableByteStream;
 
 const tests = glob.sync(path.resolve(__dirname, 'webkit/*.js'));
+const reference_tests = glob.sync(path.resolve(__dirname, 'webkit/reference-implementation/*.js'));
 tests.forEach(require);
+reference_tests.forEach(require);
