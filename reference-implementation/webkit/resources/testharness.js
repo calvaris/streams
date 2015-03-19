@@ -38,6 +38,15 @@
         self.setError(description, 'assert_unreached');
     };
 
+    function assert_does_not_throw(func, description)
+    {
+        try {
+            func.call(this);
+        } catch (e) {
+            self.setError(func + " should run smoothly but it threw " + e, "assert_does_not_throw", description);
+        }
+    }
+
     function assert_throws(code, func, description)
     {
         try {
@@ -266,6 +275,7 @@
     expose(assert_equals, 'assert_equals');
     expose(assert_unreached, 'assert_unreached');
     expose(assert_throws, 'assert_throws');
+    expose(assert_does_not_throw, 'assert_does_not_throw');
     expose(assert_true, "assert_true");
     expose(assert_false, "assert_false");
     expose(assert_not_equals, "assert_not_equals");
