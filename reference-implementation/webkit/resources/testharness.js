@@ -163,6 +163,33 @@
         }
     }
 
+    function assert_object_equals(actual, expected, description)
+    {
+         //This needs to be improved a great deal
+         function check_equal(actual, expected, stack)
+         {
+             stack.push(actual);
+
+             var p;
+             for (p in actual) {
+                 assert(expected.hasOwnProperty(p), "unexpected property " + p, "assert_object_equals", description);
+
+                 if (typeof actual[p] === "object" && actual[p] !== null) {
+                     if (stack.indexOf(actual[p]) === -1) {
+                         check_equal(actual[p], expected[p], stack);
+                     }
+                 } else {
+                     assert(same_value(actual[p], expected[p]), "property " + p + " expected " + expected + " got " + actual, "assert_object_equals", description);
+                 }
+             }
+             for (p in expected) {
+                 assert(actual.hasOwnProperty(p), "expected property " + p + " missing", "assert_object_equals", description);
+             }
+             stack.pop();
+         }
+         check_equal(actual, expected, []);
+    }
+
     function AsyncTest(description) {
         this._description = description;
         this._error = undefined;
@@ -280,6 +307,7 @@
     expose(assert_false, "assert_false");
     expose(assert_not_equals, "assert_not_equals");
     expose(assert_array_equals, "assert_array_equals");
+    expose(assert_object_equals, "assert_object_equals");
     expose(test, 'test');
     expose(async_test, 'async_test');
 })();
