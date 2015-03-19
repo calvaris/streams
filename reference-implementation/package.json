@@ -7,7 +7,8 @@
     "wpt": "node --expose_gc node_modules/traceur-runner/bin/traceur-runner.js run-web-platform-tests.js",
     "bench": "traceur-runner bench/recording-runner.js && traceur-runner bench/recording-differ.js",
     "build-browser-tests": "traceur-runner browser-tests/build.js",
-    "lint": "eslint web-platform-tests"
+    "lint": "eslint web-platform-tests",
+    "webkit-tests": "traceur-runner run-tests.js"
   },
   "repository": "whatwg/streams",
   "keywords": [

@@ -15,11 +15,5 @@ global.CountQueuingStrategy = CountQueuingStrategy;
 global.TransformStream = TransformStream;
 global.ReadableByteStream = ReadableByteStream;
 
-
-if (process.argv.length === 2) {
-  const tests = glob.sync(path.resolve(__dirname, 'test/*.js'));
-
-  tests.forEach(require);
-} else {
-    glob.sync(path.resolve(process.argv[2])).forEach(require);
-}
+const tests = glob.sync(path.resolve(__dirname, 'webkit/*.js'));
+tests.forEach(require);
