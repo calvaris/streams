@@ -190,6 +190,13 @@
          check_equal(actual, expected, []);
     }
 
+    function assert_greater_than(actual, expected, description)
+    {
+        assert(typeof actual === "number", "expected a number but got a " + typeof actual, "assert_greater_than", description);
+
+        assert(actual > expected, "expected a number greater than " + expected + " but got " + actual, "assert_greater_than", description);
+    }
+
     function AsyncTest(description) {
         this._description = description;
         this._error = undefined;
@@ -308,6 +315,7 @@
     expose(assert_not_equals, "assert_not_equals");
     expose(assert_array_equals, "assert_array_equals");
     expose(assert_object_equals, "assert_object_equals");
+    expose(assert_greater_than, "assert_greater_than");
     expose(test, 'test');
     expose(async_test, 'async_test');
 })();
