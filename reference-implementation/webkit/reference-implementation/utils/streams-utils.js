@@ -73,24 +73,21 @@ function randomChunk(size) {
     return chunk;
 }
 
-function readableStreamToArray(readable) {
-    var chunks = [];
+function readableStreamToArray(readable, reader = readable.getReader()) {
+    const chunks = [];
 
-    pump();
-    return readable.closed.then(function() {
-        return chunks;
-    });
+    return pump();
 
     function pump() {
-        while (readable.state === "readable") {
-            chunks.push(readable.read());
-        }
+        return reader.read().then(function({ value, done }) {
+            if (done) {
+                reader.releaseLock();
+                return chunks;
+            }
 
-        if (readable.state === "waiting") {
-            readable.ready.then(pump);
-        }
-
-        // Otherwise the stream is "closed" or "errored", which will be handled above.
+            chunks.push(value);
+            return pump();
+        });
     }
 }
 
