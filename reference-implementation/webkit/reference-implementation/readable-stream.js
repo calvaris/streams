@@ -1,8 +1,6 @@
 require('../resources/testharness');
 
-import RandomPushSource from './utils/streams-utils';
-import readableStreamToArray from './utils/streams-utils';
-import sequentialReadableStream from './utils/streams-utils';
+require('./utils/streams-utils');
 
 test(function() {
     assert_does_not_throw(function() { new ReadableStream(); }, 'ReadableStream constructed with no errors');

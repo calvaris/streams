@@ -1,3 +1,8 @@
+/*global self*/
+/*jshint latedef: nofunc*/
+(function()
+{
+
 function RandomPushSource(toPush) {
     this.pushed = 0;
     this.toPush = toPush;
@@ -189,3 +194,22 @@ CountQueuingStrategy.prototype = {
         return 1;
     },
 }
+
+function expose(object, name)
+{
+    var components = name.split(".");
+    var target = global;
+    for (var i = 0; i < components.length - 1; i++) {
+        if (!(components[i] in target)) {
+            target[components[i]] = {};
+        }
+        target = target[components[i]];
+    }
+    target[components[components.length - 1]] = object;
+}
+
+expose(RandomPushSource, 'RandomPushSource');
+expose(readableStreamToArray, 'readableStreamToArray');
+expose(sequentialReadableStream, 'sequentialReadableStream');
+
+})();
