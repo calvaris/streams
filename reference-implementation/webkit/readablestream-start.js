@@ -52,14 +52,43 @@ test2.step(function()
             });
         },
         pull: function(enqueue, close) {
+    }));
+});
+
+var test3 = async_test('ReadableStream pull should be able to queue different objects.');
+test3.step(function() {
+    var readCalls = 0;
+    var objects = [
+    { potato: 'Give me more!'},
+    'test',
+    1
+    ];
+
+    var rs = new ReadableStream({
+        start: function(enqueue, close, error) {
+            for (var i = 0; i < objects.length; i++) {
+                enqueue(objects[i]);
+            }
             close();
         }
     });
 
-    assert_equals(rs.state, 'waiting');
+    var reader = rs.getReader();
 
-    rs.closed.catch(test2.step_func(function() {
-        assert_equals(rs.state, 'errored');
-        test2.done();
+    reader.read().then(test3.step_func(function(r) {
+        assert_equals(r.value, objects[readCalls++]);
+    }));
+
+    reader.read().then(test3.step_func(function(r) {
+        assert_equals(r.value, objects[readCalls++]);
+    }));
+
+    reader.read().then(test3.step_func(function(r) {
+        assert_equals(r.value, objects[readCalls++]);
+    }));
+
+    reader.closed.then(test3.step_func(function() {
+        assert_equals(readCalls, 3);
+        test3.done();
     }));
 });
