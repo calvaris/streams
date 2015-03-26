@@ -37,15 +37,20 @@ test1.step(function()
 var test2 = async_test('ReadableStream start should be able to return a promise and reject it');
 test2.step(function()
 {
+    var theError = new Error("rejected!");
     var rs = new ReadableStream({
         start: function(enqueue, close, error) {
-            return Promise(function(resolve, reject) {
-                setTimeout(function() {
-                    reject();
-                }, 50);
-            });
+            return new Promise(test2.step_func(function(resolve, reject) {
+                setTimeout(test2.step_func(function() {
+                    reject(theError);
+                }), 50);
+            }));
         },
-        pull: function(enqueue, close) {
+    });
+
+    rs.getReader().closed.catch(test2.step_func(function(e) {
+        assert_equals(e, theError);
+        test2.done();
     }));
 });
 
