@@ -40,55 +40,6 @@ test1.step(function() {
     }));
 });
 
-var test2 = async_test('ReadableStream: calling close twice should be a no-op');
-test2.step(function() {
-    new ReadableStream({
-        start: function(enqueue, close) {
-            close();
-            assert_does_not_throw(close);
-        }
-    }).getReader().closed.then(test2.step_func(function() { test2.done('closed should fulfill'); }));
-});
-
-var test3 = async_test('ReadableStream: calling error twice should be a no-op');
-test3.step(function() {
-    const theError = new Error('boo!');
-    const error2 = new Error('not me!');
-    new ReadableStream({
-        start: function(enqueue, close, error) {
-            error(theError);
-            assert_does_not_throw(function() { error(error2); } );
-        }
-    }).getReader().closed.catch(test3.step_func(function(e) {
-        assert_equals(e, theError, 'closed should reject with the first error');
-        test3.done();
-    }));
-});
-
-var test4 = async_test('ReadableStream: calling error after close should be a no-op');
-test4.step(function() {
-    new ReadableStream({
-        start: function(enqueue, close, error) {
-            close();
-            assert_does_not_throw(error);
-        }
-    }).getReader().closed.then(test4.step_func(function() { test4.done('closed should fulfill'); } ));
-});
-
-var test5 = async_test('ReadableStream: calling close after error should be a no-op');
-test5.step(function() {
-    const theError = new Error('boo!');
-    new ReadableStream({
-        start: function(enqueue, close, error) {
-            error(theError);
-            assert_does_not_throw(close);
-        }
-    }).getReader().closed.catch(test5.step_func(function(e) {
-        assert_equals(e, theError, 'closed should reject with the first error')
-        test5.done();
-    }));
-});
-
 var test6 = async_test('ReadableStream: should only call pull once upon starting the stream');
 test6.step(function() {
     var pullCount = 0;
