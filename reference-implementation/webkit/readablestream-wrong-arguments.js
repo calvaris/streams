@@ -12,14 +12,6 @@ test1.step(function() {
     }), 0);
 });
 
-test(function() {
-    assert_throws(
-        new TypeError(),
-        function() {
-            new ReadableStream("potato");
-        });
-}, 'TypeError: ReadableStream constructor should get an object as argument.');
-
 var test2 = async_test('TypeError: ReadableStream constructor object start property should be functions.');
 test2.step(function() {
     var catchedError = undefined;
