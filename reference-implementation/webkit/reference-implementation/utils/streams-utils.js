@@ -86,7 +86,6 @@ function readableStreamToArray(readable, reader = readable.getReader()) {
     function pump() {
         return reader.read().then(function({ value, done }) {
             if (done) {
-                reader.releaseLock();
                 return chunks;
             }
 
