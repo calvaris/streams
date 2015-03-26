@@ -13,29 +13,23 @@ test1.step(function()
 {
     var rs = new ReadableStream({
         start: function(enqueue, close, error) {
-            return Promise(function(resolve, reject) {
-                setTimeout(function() {
+            return new Promise(test1.step_func(function(resolve, reject) {
+                setTimeout(test1.step_func(function() {
+                    enqueue('potato');
+                    close();
                     resolve();
-                    setTimeout(test1.step_func(function() {
-                        assert_equals(rs.state, 'close');
-                    }), 0);
-                }, 50);
-            });
+                }), 50);
+            }));
         },
-        pull: function(enqueue, close) {
-            enqueue('potato');
-            close();
-        }
     });
 
-    assert_equals(rs.state, 'waiting');
+    var reader = rs.getReader();
 
-    rs.ready.then(test1.step_func(function() {
-        assert_equals(rs.read(), 'potato');
+    reader.read().then(test1.step_func(function(r) {
+        assert_equals(r.value, 'potato');
     }));
 
-    rs.closed.then(test1.step_func(function() {
-        assert_equals(rs.state, 'closed');
+    reader.closed.then(test1.step_func(function() {
         test1.done();
     }));
 });
