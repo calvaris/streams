@@ -360,3 +360,127 @@ test14.step(function() {
         test14.done();
     }));
 });
+
+var test15 = async_test('Underlying source: calling close twice on an empty stream should throw the second time');
+test15.step(function() {
+    new ReadableStream({
+        start: function(enqueue, close) {
+            close();
+            assert_throws(new TypeError(), function() { close(); }, 'second call to close should throw a TypeError');
+        }
+    }).getReader().closed.then(test15.step_func(function() { test15.done('closed should fulfill'); }));
+});
+
+var test16 = async_test('Underlying source: calling close twice on a non-empty stream should throw the second time');
+test16.step(function() {
+    var startCalled = false;
+    var readCalled = false;
+    const reader = new ReadableStream({
+        start: function(enqueue, close) {
+            enqueue('a');
+            close();
+            assert_throws(new TypeError(), close, 'second call to close should throw a TypeError');
+            startCalled = true;
+        }
+    }).getReader();
+
+    reader.read().then(test16.step_func(function(r) {
+        assert_object_equals(r, { value: 'a', done: false }, 'read() should read the enqueued chunk');
+        readCalled = true;
+    }));
+    reader.closed.then(test16.step_func(function() {
+        assert_true(startCalled);
+        assert_true(readCalled);
+        test16.done('closed should fulfill');
+    }));
+});
+
+var test17 = async_test('Underlying source: calling close on an empty canceled stream should not throw');
+test17.step(function() {
+    var doClose;
+    var startCalled = false;
+    const rs = new ReadableStream({
+        start: function(enqueue, close) {
+            doClose = close;
+            startCalled = true;
+        }
+    });
+
+    rs.cancel();
+    assert_does_not_throw(doClose, 'calling close after canceling should not throw anything');
+
+    rs.getReader().closed.then(test17.step_func(function() {
+        assert_true(startCalled);
+        test17.done('closed should fulfill');
+    }));
+});
+
+var test18 = async_test('Underlying source: calling close on a non-empty canceled stream should not throw');
+test18.step(function() {
+    var doClose;
+    var startCalled = false;
+    const rs = new ReadableStream({
+        start: function(enqueue, close) {
+            enqueue('a');
+            doClose = close;
+            startCalled = true;
+        }
+    });
+
+    rs.cancel();
+    assert_does_not_throw(doClose, 'calling close after canceling should not throw anything');
+
+    rs.getReader().closed.then(test18.step_func(function() {
+        assert_true(startCalled);
+        test18.done('closed should fulfill');
+    }));
+});
+
+var test19 = async_test('Underlying source: calling close after error should throw');
+test19.step(function() {
+    const theError = new Error('boo');
+    var startCalled = false;
+    new ReadableStream({
+        start: function(enqueue, close, error) {
+            error(theError);
+            assert_throws(new TypeError(), close, 'call to close should throw a TypeError');
+            startCalled = true;
+        }
+    }).getReader().closed.catch(test19.step_func(function(e) {
+        assert_true(startCalled);
+        assert_equals(e, theError, 'closed should reject with the error')
+        test19.done();
+    }));
+});
+
+var test20 = async_test('Underlying source: calling error twice should throw the second time');
+test20.step(function() {
+    const theError = new Error('boo');
+    var startCalled = false;
+    new ReadableStream({
+        start: function(enqueue, close, error) {
+            error(theError);
+            assert_throws(new TypeError(), error, 'second call to error should throw a TypeError');
+            startCalled = true;
+        }
+    }).getReader().closed.catch(test20.step_func(function(e) {
+        assert_true(startCalled);
+        assert_equals(e, theError, 'closed should reject with the error');
+        test20.done();
+    }));
+});
+
+var test21 = async_test('Underlying source: calling error after close should throw');
+test21.step(function() {
+    var startCalled = false;
+    new ReadableStream({
+        start: function(enqueue, close, error) {
+            close();
+            assert_throws(new TypeError(), error, 'call to error should throw a TypeError');
+            startCalled = true;
+        }
+    }).getReader().closed.then(test21.step_func(function() {
+        assert_true(startCalled);
+        test21.done('closed should fulfill');
+    }));
+});
