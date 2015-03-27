@@ -68,7 +68,7 @@ test3.step(function() {
         get pull() {
             ++counter;
             if (counter === 1) {
-                return enqueue => enqueue('a');
+                return test3.step_func(function(enqueue) { enqueue('a'); })
             }
 
             throw theError;

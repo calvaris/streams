@@ -136,10 +136,10 @@ test9.step(function() {
     startPromise.then(test9.step_func(function() {
         assert_equals(pullCount, 1, 'pull should be called once start finishes');
 
-        rs.getReader().read().then(r => {
+        rs.getReader().read().then(test9.step_func(function(r) {
             assert_object_equals(r, { value: 'a', done: false }, 'first read() should return first chunk');
             assert_equals(pullCount, 2, 'pull should be called again once read fulfills');
-        });
+        }));
     }));
 
     assert_equals(pullCount, 0, 'calling read() should not cause pull to be called yet');
