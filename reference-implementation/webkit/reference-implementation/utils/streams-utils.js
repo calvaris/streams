@@ -78,8 +78,12 @@ function randomChunk(size) {
     return chunk;
 }
 
-function readableStreamToArray(readable, reader = readable.getReader()) {
-    const chunks = [];
+function readableStreamToArray(readable, reader) {
+    var chunks = [];
+
+    if (reader == undefined) {
+        reader = readable.getReader();
+    }
 
     return pump();
 
