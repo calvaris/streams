@@ -18,11 +18,11 @@ test(function() {
 var test1 = async_test('Correctly governs the return value of a ReadableStream\'s enqueue function (HWM = 0)');
 test1.step(function() {
     var enqueue;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(enqueue_) { enqueue = enqueue_; },
         strategy: new CountQueuingStrategy({ highWaterMark: 0 })
     });
-    const reader = rs.getReader();
+    var reader = rs.getReader();
 
     assert_equals(enqueue('a'), false, 'After 0 reads, 1st enqueue should return false (queue now contains 1 chunk)');
     assert_equals(enqueue('b'), false, 'After 0 reads, 2nd enqueue should return false (queue now contains 2 chunks)');
@@ -53,11 +53,11 @@ test1.step(function() {
 var test2 = async_test('Correctly governs the return value of a ReadableStream\'s enqueue function (HWM = 1)');
 test2.step(function() {
     var enqueue;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(enqueue_) { enqueue = enqueue_; },
         strategy: new CountQueuingStrategy({ highWaterMark: 1 })
     });
-    const reader = rs.getReader();
+    var reader = rs.getReader();
 
     assert_equals(enqueue('a'), true, 'After 0 reads, 1st enqueue should return true (queue now contains 1 chunk)');
     assert_equals(enqueue('b'), false, 'After 0 reads, 2nd enqueue should return false (queue now contains 2 chunks)');
@@ -88,11 +88,11 @@ test2.step(function() {
 var test3 = async_test('Correctly governs the return value of a ReadableStream\'s enqueue function (HWM = 4)');
 test3.step(function() {
     var enqueue;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(enqueue_) { enqueue = enqueue_; },
         strategy: new CountQueuingStrategy({ highWaterMark: 4 })
     });
-    const reader = rs.getReader();
+    var reader = rs.getReader();
 
     assert_equals(enqueue('a'), true, 'After 0 reads, 1st enqueue should return true (queue now contains 1 chunk)');
     assert_equals(enqueue('b'), true, 'After 0 reads, 2nd enqueue should return true (queue now contains 2 chunks)');

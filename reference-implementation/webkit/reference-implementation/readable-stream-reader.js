@@ -12,25 +12,25 @@ test(function() {
 }, 'Can get the ReadableStreamReader constructor indirectly');
 
 test(function() {
-    const rs = new ReadableStream();
+    var rs = new ReadableStream();
     assert_does_not_throw(function() { new ReadableStreamReader(rs); }, 'constructing directly the first time should be fine');
     assert_throws(new TypeError(), function() { new ReadableStreamReader(rs); }, 'constructing directly the second time should fail');
 }, 'Constructing an ReadableStreamReader directly should fail if the stream is already locked (via direct construction)');
 
 test(function() {
-    const rs = new ReadableStream();
+    var rs = new ReadableStream();
     assert_does_not_throw(function() { new ReadableStreamReader(rs); }, 'constructing directly should be fine');
     assert_throws(new TypeError(), function() { rs.getReader(); }, 'getReader() should fail');
 }, 'Getting an ReadableStreamReader via getReader should fail if the stream is already locked (via direct construction');
 
 test(function() {
-    const rs = new ReadableStream();
+    var rs = new ReadableStream();
     assert_does_not_throw(function() { rs.getReader(); }, 'getReader() should be fine');
     assert_throws(new TypeError(), function() { new ReadableStreamReader(rs); }, 'constructing directly should fail');
 }, 'Constructing an ReadableStreamReader directly should fail if the stream is already locked (via getReader)');
 
 test(function() {
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(enqueue, close) {
             close();
         }
@@ -40,8 +40,8 @@ test(function() {
 }, 'Constructing an ReadableStreamReader directly should be OK if the stream is closed');
 
 test(function() {
-    const theError = new Error('don\'t say i didn\'t warn ya');
-    const rs = new ReadableStream({
+    var theError = new Error('don\'t say i didn\'t warn ya');
+    var rs = new ReadableStream({
         start: function(enqueue, close, error) {
             error(theError);
         }
@@ -53,12 +53,12 @@ test(function() {
 var test1 = async_test('Reading from a reader for an empty stream will wait until a chunk is available');
 test1.step(function() {
     var enqueue;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(e) {
             enqueue = e;
         }
     });
-    const reader = rs.getReader();
+    var reader = rs.getReader();
 
     reader.read().then(test1.step_func(function(result) {
         assert_object_equals(result, { value: 'a', done: false }, 'read() should fulfill with the enqueued chunk');
@@ -71,8 +71,8 @@ test1.step(function() {
 var test2 = async_test('cancel() on a reader releases the reader before calling through');
 test2.step(function() {
     var cancelCalled = false;
-    const passedReason = new Error('it wasn\'t the right time, sorry');
-    const rs = new ReadableStream({
+    var passedReason = new Error('it wasn\'t the right time, sorry');
+    var rs = new ReadableStream({
         cancel: function(reason) {
             cancelCalled = true;
             assert_does_not_throw(function() { rs.getReader(); }, 'should be able to get another reader without error');
@@ -80,7 +80,7 @@ test2.step(function() {
         }
     });
 
-    const reader = rs.getReader();
+    var reader = rs.getReader();
     reader.cancel(passedReason).then(
         test2.step_func(function() {
             assert_true(cancelCalled);
@@ -92,13 +92,13 @@ test2.step(function() {
 var test3 = async_test('closed should be fulfilled after stream is closed (.closed access before acquiring)');
 test3.step(function() {
     var doClose;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(enqueue, close) {
             doClose = close;
         }
     });
 
-    const reader = rs.getReader();
+    var reader = rs.getReader();
     reader.closed.then(test3.step_func(function() {
         test3.done('reader closed should be fulfilled');
     }));
@@ -110,17 +110,17 @@ var test4 = async_test('closed should be fulfilled after reader releases its loc
 test4.step(function() {
     var doClose;
     var reader1Closed = false;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(enqueue, close) {
             doClose = close;
         }
     });
 
-    const reader1 = rs.getReader();
+    var reader1 = rs.getReader();
 
     reader1.releaseLock();
 
-    const reader2 = rs.getReader();
+    var reader2 = rs.getReader();
     doClose();
 
     reader1.closed.then(test4.step_func(function() {
@@ -136,7 +136,7 @@ test4.step(function() {
 var test5 = async_test('Multiple readers can access the stream in sequence');
 test5.step(function() {
     var readCount = 0;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(enqueue, close) {
             enqueue('a');
             enqueue('b');
@@ -144,14 +144,14 @@ test5.step(function() {
         }
     });
 
-    const reader1 = rs.getReader();
+    var reader1 = rs.getReader();
     reader1.read().then(test5.step_func(function(r) {
         assert_object_equals(r, { value: 'a', done: false }, 'reading the first chunk from reader1 works');
         ++readCount;
     }));
     reader1.releaseLock();
 
-    const reader2 = rs.getReader();
+    var reader2 = rs.getReader();
     reader2.read().then(test5.step_func(function(r) {
         assert_object_equals(r, { value: 'b', done: false }, 'reading the second chunk from reader2 works');
         ++readCount;
@@ -166,16 +166,16 @@ test5.step(function() {
 
 var test6 = async_test('Cannot use an already-released reader to unlock a stream again');
 test6.step(function() {
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(enqueue) {
             enqueue('a');
         }
     });
 
-    const reader1 = rs.getReader();
+    var reader1 = rs.getReader();
     reader1.releaseLock();
 
-    const reader2 = rs.getReader();
+    var reader2 = rs.getReader();
 
     reader1.releaseLock();
     reader2.read().then(test6.step_func(function(result) {
@@ -188,7 +188,7 @@ var test7 = async_test('cancel() on a released reader is a no-op and does not pa
 test7.step(function() {
     var readCounts = 0;
     var cancelled = false;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(enqueue) {
             enqueue('a');
         },
@@ -197,14 +197,14 @@ test7.step(function() {
         }
     });
 
-    const reader = rs.getReader();
+    var reader = rs.getReader();
     reader.releaseLock();
     reader.cancel().then(test7.step_func(function(v) {
         assert_equals(v, undefined, 'cancel() on the reader should fulfill with undefined')
         cancelled = true;
     }));
 
-    const reader2 = rs.getReader();
+    var reader2 = rs.getReader();
     reader2.read().then(test7.step_func(function(r) {
         assert_object_equals(r, { value: 'a', done: false }, 'a new reader should be able to read a chunk');
         ++readCounts;
@@ -221,14 +221,14 @@ var test8 = async_test('Getting a second reader after erroring the stream should
 test8.step(function() {
     var doError;
     var receivedErrors = 0;
-    const theError = new Error('bad');
-    const rs = new ReadableStream({
+    var theError = new Error('bad');
+    var rs = new ReadableStream({
         start: function(enqueue, close, error) {
             doError = error;
         }
     });
 
-    const reader1 = rs.getReader();
+    var reader1 = rs.getReader();
 
     reader1.closed.catch(test8.step_func(function(e) {
         assert_equals(e, theError, 'the first reader closed getter should be rejected with the error');

@@ -4,10 +4,10 @@ require('./utils/streams-utils');
 
 var test1 = async_test('ReadableStream cancellation: integration test on an infinite stream derived from a random push source');
 test1.step(function() {
-    const randomSource = new RandomPushSource();
+    var randomSource = new RandomPushSource();
 
     var cancellationFinished = false;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(enqueue, close, error) {
             randomSource.ondata = enqueue;
             randomSource.onend = close;
@@ -30,7 +30,7 @@ test1.step(function() {
             }));
         }
     });
-    const reader = rs.getReader();
+    var reader = rs.getReader();
 
     readableStreamToArray(rs, reader).then(test1.step_func(function(chunks) {
         assert_equals(cancellationFinished, false, 'it did not wait for the cancellation process to finish before closing');
@@ -50,13 +50,13 @@ test1.step(function() {
 
 test(function() {
     var recordedReason;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         cancel: function(reason) {
             recordedReason = reason;
         }
     });
 
-    const passedReason = new Error('Sorry, it just wasn\'t meant to be.');
+    var passedReason = new Error('Sorry, it just wasn\'t meant to be.');
     rs.cancel(passedReason);
 
     assert_equals(recordedReason, passedReason,
@@ -65,7 +65,7 @@ test(function() {
 
 var test2 = async_test('ReadableStream cancellation: cancel() on a locked stream should fail and not call the underlying source cancel');
 test2.step(function() {
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(enqueue, close) {
             enqueue('a');
             close();
@@ -75,7 +75,7 @@ test2.step(function() {
         }
     });
 
-    const reader = rs.getReader();
+    var reader = rs.getReader();
 
     rs.cancel().catch(test2.step_func(function(e) {
         assert_throws(new TypeError(), e, 'cancel() should be rejected with a TypeError')
@@ -92,7 +92,7 @@ test2.step(function() {
 
 var test3 = async_test('ReadableStream cancellation: returning a value from the underlying source\'s cancel should not affect the fulfillment value of the promise returned by the stream\'s cancel');
 test3.step(function() {
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         cancel: function(reason) {
             return 'Hello';
         }
@@ -110,9 +110,9 @@ var test4 = async_test('ReadableStream cancellation: if the underlying source\'s
 test4.step(function() {
     var resolveSourceCancelPromise;
     var sourceCancelPromiseHasFulfilled = false;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         cancel: function() {
-            const sourceCancelPromise = new Promise(test4.step_func(function(resolve, reject) {
+            var sourceCancelPromise = new Promise(test4.step_func(function(resolve, reject) {
                 resolveSourceCancelPromise = resolve;
             }));
 
@@ -139,9 +139,9 @@ var test5 = async_test('ReadableStream cancellation: if the underlying source\'s
 test5.step(function() {
     var rejectSourceCancelPromise;
     var sourceCancelPromiseHasRejected = false;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         cancel: function() {
-            const sourceCancelPromise = new Promise(test5.step_func(function(resolve, reject) {
+            var sourceCancelPromise = new Promise(test5.step_func(function(resolve, reject) {
                 rejectSourceCancelPromise = reject;
             }));
 
@@ -153,7 +153,7 @@ test5.step(function() {
         }
     });
 
-    const errorInCancel = new Error('Sorry, it just wasn\'t meant to be.');
+    var errorInCancel = new Error('Sorry, it just wasn\'t meant to be.');
 
     rs.cancel().then(
         test5.step_func(function() { assert_function('cancel() return value should not be rejected'); }),
@@ -170,7 +170,7 @@ test5.step(function() {
 
 var test6 = async_test('ReadableStream cancellation: cancelling before start finishes should prevent pull() from being called');
 test6.step(function() {
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         pull: function() {
             assert_unreached('pull should not have been called');
         }

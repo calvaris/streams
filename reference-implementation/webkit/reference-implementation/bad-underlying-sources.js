@@ -3,7 +3,7 @@ require('../resources/testharness');
 require('./utils/streams-utils');
 
 test(function() {
-    const theError = new Error('a unique string');
+    var theError = new Error('a unique string');
 
     assert_throws(theError, function() {
         new ReadableStream({
@@ -15,7 +15,7 @@ test(function() {
 }, 'Underlying source start: throwing getter');
 
 test(function() {
-    const theError = new Error('a unique string');
+    var theError = new Error('a unique string');
 
     assert_throws(theError, function() {
         new ReadableStream({
@@ -28,8 +28,8 @@ test(function() {
 
 var test1 = async_test('Underlying source: throwing pull getter (initial pull)');
 test1.step(function() {
-    const theError = new Error('a unique string');
-    const rs = new ReadableStream({
+    var theError = new Error('a unique string');
+    var rs = new ReadableStream({
         get pull() {
             throw theError;
         }
@@ -45,8 +45,8 @@ test1.step(function() {
 
 var test2 = async_test('Underlying source: throwing pull method (initial pull)');
 test2.step(function() {
-    const theError = new Error('a unique string');
-    const rs = new ReadableStream({
+    var theError = new Error('a unique string');
+    var rs = new ReadableStream({
         pull: function() {
             throw theError;
         }
@@ -62,9 +62,9 @@ test2.step(function() {
 
 var test3 = async_test('Underlying source: throwing pull getter (second pull)');
 test3.step(function() {
-    const theError = new Error('a unique string');
+    var theError = new Error('a unique string');
     var counter = 0;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         get pull() {
             ++counter;
             if (counter === 1) {
@@ -74,7 +74,7 @@ test3.step(function() {
             throw theError;
         }
     });
-    const reader = rs.getReader();
+    var reader = rs.getReader();
 
     reader.read().then(test3.step_func(function(r) {
         assert_object_equals(r, { value: 'a', done: false }, 'the chunk read should be correct');
@@ -90,9 +90,9 @@ test3.step(function() {
 
 var test4 = async_test('Underlying source: throwing pull method (second pull)');
 test4.step(function() {
-    const theError = new Error('a unique string');
+    var theError = new Error('a unique string');
     var counter = 0;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         pull: function(enqueue) {
             ++counter;
             if (counter === 1) {
@@ -102,7 +102,7 @@ test4.step(function() {
             }
         }
     });
-    const reader = rs.getReader();
+    var reader = rs.getReader();
 
     reader.read().then(test4.step_func(function(r) { assert_object_equals(r, { value: 'a', done: false }, 'the chunk read should be correct'); }));
 
@@ -116,8 +116,8 @@ test4.step(function() {
 
 var test5 = async_test('Underlying source: throwing cancel getter');
 test5.step(function() {
-    const theError = new Error('a unique string');
-    const rs = new ReadableStream({
+    var theError = new Error('a unique string');
+    var rs = new ReadableStream({
         get cancel() {
             throw theError;
         }
@@ -133,8 +133,8 @@ test5.step(function() {
 
 var test6 = async_test('Underlying source: throwing cancel method');
 test6.step(function() {
-    const theError = new Error('a unique string');
-    const rs = new ReadableStream({
+    var theError = new Error('a unique string');
+    var rs = new ReadableStream({
         cancel: function() {
             throw theError;
         }
@@ -151,9 +151,9 @@ test6.step(function() {
 var test7 = async_test('Underlying source: throwing strategy getter');
 test7.step(function() {
     var started = false;
-    const theError = new Error('a unique string');
+    var theError = new Error('a unique string');
 
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(enqueue) {
             started = true;
             assert_throws(theError, function() { enqueue('a'); }, 'enqueue should throw the error');
@@ -173,8 +173,8 @@ test7.step(function() {
 var test8 = async_test('Underlying source: throwing strategy.size getter');
 test8.step(function() {
     var started = false;
-    const theError = new Error('a unique string');
-    const rs = new ReadableStream({
+    var theError = new Error('a unique string');
+    var rs = new ReadableStream({
         start: function(enqueue) {
             started = true;
             assert_throws(theError, function() { enqueue('a'); }, 'enqueue should throw the error');
@@ -199,8 +199,8 @@ test8.step(function() {
 var test9 = async_test('Underlying source: throwing strategy.size method');
 test9.step(function() {
     var started = false;
-    const theError = new Error('a unique string');
-    const rs = new ReadableStream({
+    var theError = new Error('a unique string');
+    var rs = new ReadableStream({
         start: function(enqueue) {
             started = true;
             assert_throws(theError, function() { enqueue('a'); }, 'enqueue should throw the error');
@@ -225,8 +225,8 @@ test9.step(function() {
 var test10 = async_test('Underlying source: throwing strategy.shouldApplyBackpressure getter');
 test10.step(function() {
     var started = false;
-    const theError = new Error('a unique string');
-    const rs = new ReadableStream({
+    var theError = new Error('a unique string');
+    var rs = new ReadableStream({
         start: function(enqueue) {
             started = true;
             assert_throws(theError, function() { enqueue('a'); }, 'enqueue should throw the error');
@@ -251,8 +251,8 @@ test10.step(function() {
 var test11 = async_test('Underlying source: throwing strategy.shouldApplyBackpressure method');
 test11.step(function() {
     var started = false;
-    const theError = new Error('a unique string');
-    const rs = new ReadableStream({
+    var theError = new Error('a unique string');
+    var rs = new ReadableStream({
         start: function(enqueue) {
             started = true;
             assert_throws(theError, function() { enqueue('a'); }, 'enqueue should throw the error');
@@ -277,7 +277,7 @@ test11.step(function() {
 var test12 = async_test('Underlying source: strategy.size returning NaN');
 test12.step(function() {
     var theError = undefined;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(enqueue) {
             try {
                 enqueue('hi');
@@ -306,7 +306,7 @@ test12.step(function() {
 var test13 = async_test('Underlying source: strategy.size returning -Infinity');
 test13.step(function() {
     var theError = undefined;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(enqueue) {
             try {
                 enqueue('hi');
@@ -335,7 +335,7 @@ test13.step(function() {
 var test14 = async_test('Underlying source: strategy.size returning +Infinity');
 test14.step(function() {
     var theError = undefined;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(enqueue) {
             try {
                 enqueue('hi');
@@ -375,7 +375,7 @@ var test16 = async_test('Underlying source: calling close twice on a non-empty s
 test16.step(function() {
     var startCalled = false;
     var readCalled = false;
-    const reader = new ReadableStream({
+    var reader = new ReadableStream({
         start: function(enqueue, close) {
             enqueue('a');
             close();
@@ -399,7 +399,7 @@ var test17 = async_test('Underlying source: calling close on an empty canceled s
 test17.step(function() {
     var doClose;
     var startCalled = false;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(enqueue, close) {
             doClose = close;
             startCalled = true;
@@ -419,7 +419,7 @@ var test18 = async_test('Underlying source: calling close on a non-empty cancele
 test18.step(function() {
     var doClose;
     var startCalled = false;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(enqueue, close) {
             enqueue('a');
             doClose = close;
@@ -438,7 +438,7 @@ test18.step(function() {
 
 var test19 = async_test('Underlying source: calling close after error should throw');
 test19.step(function() {
-    const theError = new Error('boo');
+    var theError = new Error('boo');
     var startCalled = false;
     new ReadableStream({
         start: function(enqueue, close, error) {
@@ -455,7 +455,7 @@ test19.step(function() {
 
 var test20 = async_test('Underlying source: calling error twice should throw the second time');
 test20.step(function() {
-    const theError = new Error('boo');
+    var theError = new Error('boo');
     var startCalled = false;
     new ReadableStream({
         start: function(enqueue, close, error) {

@@ -64,7 +64,7 @@ function realCountQueuingStrategy() {
 }
 
 function getterRejects(test, obj, getterName, target, endTest) {
-    const getter = Object.getOwnPropertyDescriptor(obj, getterName).get;
+    var getter = Object.getOwnPropertyDescriptor(obj, getterName).get;
 
     getter.call(target).then(
         test.step_func(function() { assert_unreached(getterName + ' should not fulfill'); }),
@@ -77,7 +77,7 @@ function getterRejects(test, obj, getterName, target, endTest) {
 }
 
 function methodRejects(test, obj, methodName, target, endTest) {
-    const method = obj[methodName];
+    var method = obj[methodName];
 
     method.call(target).then(
         test.step_func(function() { assert_unreached(methodName + ' should not fulfill'); }),
@@ -90,7 +90,7 @@ function methodRejects(test, obj, methodName, target, endTest) {
 }
 
 function methodThrows(obj, methodName, target) {
-    const method = obj[methodName];
+    var method = obj[methodName];
 
     assert_throws(new TypeError(), function() { method.call(target); }, methodName + ' should throw a TypeError');
 }
@@ -128,9 +128,9 @@ test(function() {
 }, 'ByteLengthQueuingStrategy.prototype.shouldApplyBackpressure enforces a brand check');
 
 test(function() {
-    const thisValue = null;
-    const returnValue = { 'returned from': 'byteLength getter' };
-    const chunk = {
+    var thisValue = null;
+    var returnValue = { 'returned from': 'byteLength getter' };
+    var chunk = {
         get byteLength() {
             return returnValue;
         }
@@ -145,8 +145,8 @@ test(function() {
 }, 'CountQueuingStrategy.prototype.shouldApplyBackpressure enforces a brand check');
 
 test(function() {
-    const thisValue = null;
-    const chunk = {
+    var thisValue = null;
+    var chunk = {
         get byteLength() {
             throw new TypeError('shouldn\'t be called');
         }
