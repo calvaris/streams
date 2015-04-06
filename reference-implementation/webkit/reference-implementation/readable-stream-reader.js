@@ -5,29 +5,27 @@ require('./utils/streams-utils');
 var ReadableStreamReader;
 
 test(function() {
-    assert_does_not_throw(function() {
-        // It's not exposed globally, but we test a few of its properties here.
-        ReadableStreamReader = (new ReadableStream()).getReader().constructor;
-    });
+    // It's not exposed globally, but we test a few of its properties here.
+    ReadableStreamReader = (new ReadableStream()).getReader().constructor;
 }, 'Can get the ReadableStreamReader constructor indirectly');
 
 test(function() {
     var rs = new ReadableStream();
-    assert_does_not_throw(function() { new ReadableStreamReader(rs); }, 'constructing directly the first time should be fine');
+    new ReadableStreamReader(rs); // Constructing directly the first time should be fine.
     assert_throws(new TypeError(), function() { new ReadableStreamReader(rs); }, 'constructing directly the second time should fail');
-}, 'Constructing an ReadableStreamReader directly should fail if the stream is already locked (via direct construction)');
+}, 'Constructing a ReadableStreamReader directly should fail if the stream is already locked (via direct construction)');
 
 test(function() {
     var rs = new ReadableStream();
-    assert_does_not_throw(function() { new ReadableStreamReader(rs); }, 'constructing directly should be fine');
+    new ReadableStreamReader(rs); // Constructing directly should be fine.
     assert_throws(new TypeError(), function() { rs.getReader(); }, 'getReader() should fail');
-}, 'Getting an ReadableStreamReader via getReader should fail if the stream is already locked (via direct construction');
+}, 'Getting a ReadableStreamReader via getReader should fail if the stream is already locked (via direct construction');
 
 test(function() {
     var rs = new ReadableStream();
-    assert_does_not_throw(function() { rs.getReader(); }, 'getReader() should be fine');
+    rs.getReader(); // getReader() should be fine.
     assert_throws(new TypeError(), function() { new ReadableStreamReader(rs); }, 'constructing directly should fail');
-}, 'Constructing an ReadableStreamReader directly should fail if the stream is already locked (via getReader)');
+}, 'Constructing a ReadableStreamReader directly should fail if the stream is already locked (via getReader)');
 
 test(function() {
     var rs = new ReadableStream({
@@ -36,8 +34,8 @@ test(function() {
         }
     });
 
-    assert_does_not_throw(function() { new ReadableStreamReader(rs); }, 'constructing directly should not throw');
-}, 'Constructing an ReadableStreamReader directly should be OK if the stream is closed');
+    new ReadableStreamReader(rs); // Constructing directly should not throw.
+}, 'Constructing a ReadableStreamReader directly should be OK if the stream is closed');
 
 test(function() {
     var theError = new Error('don\'t say i didn\'t warn ya');
@@ -47,8 +45,8 @@ test(function() {
         }
     });
 
-    assert_does_not_throw(function() { new ReadableStreamReader(rs); }, 'constructing directly should not throw');
-}, 'Constructing an ReadableStreamReader directly should be OK if the stream is errored');
+    new ReadableStreamReader(rs); // Constructing directly should not throw.
+}, 'Constructing a ReadableStreamReader directly should be OK if the stream is errored');
 
 var test1 = async_test('Reading from a reader for an empty stream will wait until a chunk is available');
 test1.step(function() {
@@ -75,7 +73,7 @@ test2.step(function() {
     var rs = new ReadableStream({
         cancel: function(reason) {
             cancelCalled = true;
-            assert_does_not_throw(function() { rs.getReader(); }, 'should be able to get another reader without error');
+            rs.getReader(); // Should be able to get another reader without error.
             assert_equals(reason, passedReason, 'the cancellation reason is passed through to the underlying source');
         }
     });

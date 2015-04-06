@@ -36,7 +36,7 @@ test1.step(function() {
         assert_equals(cancellationFinished, false, 'it did not wait for the cancellation process to finish before closing');
         assert_greater_than(chunks.length, 0, 'at least one chunk should be read');
         for (var i = 0; i < chunks.length; i++) {
-            assert_equals(chunks[i].length, 128, `chunk ${i + 1} should have 128 bytes`);
+            assert_equals(chunks[i].length, 128, "chunk should have 128 bytes");
         }
     }), test1.step_func(function(e) { assert_unreached(e); }));
 

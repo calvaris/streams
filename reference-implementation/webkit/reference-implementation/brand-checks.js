@@ -5,17 +5,15 @@ require('./utils/streams-utils');
 var ReadableStreamReader;
 
 test(function() {
-    assert_does_not_throw(function() {
-        // It's not exposed globally, but we test a few of its properties here.
-        ReadableStreamReader = (new ReadableStream()).getReader().constructor;
-    });
+    // It's not exposed globally, but we test a few of its properties here.
+    ReadableStreamReader = (new ReadableStream()).getReader().constructor;
 }, 'Can get the ReadableStreamReader constructor indirectly');
 
 function fakeReadableStream() {
     return {
         cancel: function(reason) { return Promise.resolve(); },
-        pipeThrough: function({ writable, readable }, options) { return readable; },
-        pipeTo: function(dest, { preventClose, preventAbort, preventCancel } = {}) { return Promise.resolve(); },
+        pipeThrough: function(obj, options) { return obj.readable; },
+        pipeTo: function() { return Promise.resolve(); },
         getReader: function() { return new ReadableStream(new ReadableStream()); }
     };
 }
@@ -45,22 +43,22 @@ function fakeByteLengthQueuingStrategy() {
 }
 
 function realByteLengthQueuingStrategy() {
-    return new ByteLengthQueuingStrategy({ highWaterMark: 1 });
+    return new ByteLengthQueuingStrategy({ "highWaterMark": 1});
 }
 
 function fakeCountQueuingStrategy() {
     return {
-        shouldApplyBackpressure(queueSize) {
+        shouldApplyBackpressure: function(queueSize) {
             return queueSize > 1;
         },
-        size(chunk) {
+        size: function(chunk) {
             return 1;
         }
     };
 }
 
 function realCountQueuingStrategy() {
-    return new CountQueuingStrategy({ highWaterMark: 1 });
+    return new CountQueuingStrategy({ "highWaterMark": 1});
 }
 
 function getterRejects(test, obj, getterName, target, endTest) {

@@ -3,7 +3,7 @@ require('../resources/testharness');
 require('./utils/streams-utils');
 
 test(function() {
-    assert_does_not_throw(function() { new ReadableStream(); }, 'ReadableStream constructed with no errors');
+    new ReadableStream(); // ReadableStream constructed with no errors.
 }, 'ReadableStream can be constructed with no arguments');
 
 test(function() {

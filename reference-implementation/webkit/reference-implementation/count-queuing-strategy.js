@@ -3,16 +3,16 @@ require('../resources/testharness');
 require('./utils/streams-utils');
 
 test(function() {
-    assert_does_not_throw(function() { new CountQueuingStrategy({ highWaterMark: 4 }); });
+    new CountQueuingStrategy({ "highWaterMark": 4});
 }, 'Can construct a CountQueuingStrategy with a valid high water mark');
 
 test(function() {
-    assert_throws(new RangeError(), function() { new CountQueuingStrategy({ highWaterMark: -4 }) }, 'throws for { highWaterMark: -4 }');
-    assert_throws(new RangeError(), function() { new CountQueuingStrategy({ highWaterMark: '-4' }) }, 'throws for { highWaterMark: \'-4\' }');
+    assert_throws(new RangeError(), function() { new CountQueuingStrategy({ "highWaterMark": -4 }) }, 'throws for { highWaterMark: -4 }');
+    assert_throws(new RangeError(), function() { new CountQueuingStrategy({ "highWaterMark": '-4' }) }, 'throws for { highWaterMark: \'-4\' }');
 }, 'Gives a RangeError when the number is negative');
 
 test(function() {
-    assert_does_not_throw(function() { new ReadableStream({ strategy: new CountQueuingStrategy({ highWaterMark: 4 }) }); } );
+    new ReadableStream({ strategy: new CountQueuingStrategy({ "highWaterMark": 4 }) });
 }, 'Can construct a readable stream with a valid CountQueuingStrategy');
 
 var test1 = async_test('Correctly governs the return value of a ReadableStream\'s enqueue function (HWM = 0)');
@@ -20,7 +20,7 @@ test1.step(function() {
     var enqueue;
     var rs = new ReadableStream({
         start: function(enqueue_) { enqueue = enqueue_; },
-        strategy: new CountQueuingStrategy({ highWaterMark: 0 })
+        strategy: new CountQueuingStrategy({ "highWaterMark": 0 })
     });
     var reader = rs.getReader();
 
@@ -55,7 +55,7 @@ test2.step(function() {
     var enqueue;
     var rs = new ReadableStream({
         start: function(enqueue_) { enqueue = enqueue_; },
-        strategy: new CountQueuingStrategy({ highWaterMark: 1 })
+        strategy: new CountQueuingStrategy({ "highWaterMark": 1 })
     });
     var reader = rs.getReader();
 
@@ -90,7 +90,7 @@ test3.step(function() {
     var enqueue;
     var rs = new ReadableStream({
         start: function(enqueue_) { enqueue = enqueue_; },
-        strategy: new CountQueuingStrategy({ highWaterMark: 4 })
+        strategy: new CountQueuingStrategy({ "highWaterMark": 4 })
     });
     var reader = rs.getReader();
 

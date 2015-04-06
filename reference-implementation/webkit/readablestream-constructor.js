@@ -2,26 +2,16 @@ require('./resources/testharness');
 
 test(function() {
     var rs = new ReadableStream();
-
-    assert_array_equals(Object.getOwnPropertyNames(rs), ['closed', 'ready']);
-    assert_array_equals(Object.getOwnPropertyNames(Object.getPrototypeOf(rs)), ['cancel', 'constructor', 'pipeThrough', 'pipeTo', 'read', 'state']);
-
-    assert_true(Object.getOwnPropertyDescriptor(rs, 'closed').enumerable);
-    assert_false(Object.getOwnPropertyDescriptor(rs, 'closed').configurable);
-
-    assert_true(Object.getOwnPropertyDescriptor(rs, 'ready').enumerable);
-    assert_false(Object.getOwnPropertyDescriptor(rs, 'ready').configurable);
-
-    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rs), 'state').enumerable);
-    assert_false(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rs), 'state').configurable);
-
-    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rs), 'read').enumerable);
-    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rs), 'read').configurable);
-    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rs), 'read').writable);
+    assert_array_equals(Object.getOwnPropertyNames(rs), []);
+    assert_array_equals(Object.getOwnPropertyNames(Object.getPrototypeOf(rs)), ['constructor','cancel', 'getReader', 'pipeTo', 'pipeThrough']);
 
     assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rs), 'cancel').enumerable);
     assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rs), 'cancel').configurable);
     assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rs), 'cancel').writable);
+
+    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rs), 'getReader').enumerable);
+    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rs), 'getReader').configurable);
+    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rs), 'getReader').writable);
 
     assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rs), 'pipeTo').enumerable);
     assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rs), 'pipeTo').configurable);
@@ -30,6 +20,15 @@ test(function() {
     assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rs), 'pipeThrough').enumerable);
     assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rs), 'pipeThrough').configurable);
     assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rs), 'pipeThrough').writable);
+
+    assert_equals(typeof rs.cancel, 'function', 'has an cancel method');
+    assert_equals(rs.cancel.length, 1);
+    assert_equals(typeof rs.getReader, 'function', 'has a getReader method');
+    assert_equals(rs.getReader.length, 0);
+    assert_equals(typeof rs.pipeTo, 'function', 'has a pipeTo method');
+    assert_equals(rs.pipeTo.length, 2);
+    assert_equals(typeof rs.pipeThrough, 'function', 'has a pipeThrough method');
+    assert_equals(rs.pipeThrough.length, 2);
 }, 'ReadableStream instances should have the correct list of properties');
 
 test(function() {

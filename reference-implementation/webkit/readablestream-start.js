@@ -34,7 +34,7 @@ test1.step(function()
     }));
 });
 
-var test2 = async_test('ReadableStream start should be able to return a promise and reject it');
+var test2 = async_test('ReadableStream start should be able to return a promise and reject it', { timeout: 100 });
 test2.step(function()
 {
     var theError = new Error("rejected!");

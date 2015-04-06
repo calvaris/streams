@@ -1,6 +1,6 @@
 require('./resources/testharness');
 
-var test1 = async_test('ReadableStream pull should be able to close a stream.');
+var test1 = async_test('ReadableStream pull should be able to close a stream.', { timeout: 50 });
 test1.step(function() {
     var rs = new ReadableStream({
         pull: function(enqueue, close, error) {

@@ -4,6 +4,9 @@ require('./utils/streams-utils');
 
 function templatedRSEmpty(label, factory) {
     test(function() {
+    }, 'Running templatedRSEmpty with ' + label);
+
+    test(function() {
         var rs = factory();
 
         assert_equals(typeof rs.cancel, 'function', 'has a cancel method');
@@ -14,6 +17,9 @@ function templatedRSEmpty(label, factory) {
 }
 
 function templatedRSClosed(label, factory) {
+    test(function() {
+    }, 'Running templatedRSClosed with ' + label);
+
     var test1 = async_test('cancel() should return a distinct fulfilled promise each time');
     test1.step(function() {
         var rs = factory();
@@ -37,7 +43,7 @@ function templatedRSClosed(label, factory) {
     test(function() {
         var rs = factory();
 
-        assert_does_not_throw(function() { rs.getReader(); }, 'getReader() should not throw');
+        rs.getReader(); // getReader() should not throw.
     }, 'getReader() should be OK');
 
     test(function() {
@@ -45,12 +51,15 @@ function templatedRSClosed(label, factory) {
 
         rs.getReader();
 
-        assert_does_not_throw(function() { rs.getReader(); }, 'getting a second reader should not throw');
-        assert_does_not_throw(function() { rs.getReader(); }, 'getting a third reader should not throw');
+        rs.getReader(); // Getting a second reader should not throw.
+        rs.getReader(); // Getting a third reader should not throw.
     }, 'should be able to acquire multiple readers, since they are all auto-released');
 };
 
 function templatedRSErrored(label, factory, error) {
+    test(function() {
+    }, 'Running templatedRSErrored with ' + label);
+
     var test1 = async_test('getReader() should return a reader that acts errored');
     test1.step(function() {
         var rs = factory();
@@ -71,6 +80,9 @@ function templatedRSErrored(label, factory, error) {
 };
 
 function templatedRSErroredSyncOnly(label, factory, error) {
+    test(function() {
+    }, 'Running templatedRSErroredSyncOnly with ' + label);
+
     var test1 = async_test('cancel() should return a distinct rejected promise each time');
     test1.step(function() {
         var rs = factory();
@@ -117,12 +129,15 @@ function templatedRSErroredSyncOnly(label, factory, error) {
 
         rs.getReader();
 
-        assert_does_not_throw(function() { rs.getReader(); }, 'getting a second reader should not throw');
-        assert_does_not_throw(function() { rs.getReader(); }, 'getting a third reader should not throw');
+        rs.getReader(); // Getting a second reader should not throw.
+        rs.getReader(); // Getting a third reader should not throw.
     }, 'should be able to acquire multiple readers, since they are all auto-released');
 };
 
 function templatedRSEmptyReader(label, factory) {
+    test(function() {
+    }, 'Running templatedRSEmptyReader with ' + label);
+
     test(function() {
         var { reader } = factory();
 
@@ -259,6 +274,9 @@ function templatedRSEmptyReader(label, factory) {
 };
 
 function templatedRSClosedReader(label, factory) {
+    test(function() {
+    }, 'Running templatedRSClosedReader with ' + label);
+
     var  test1 = async_test('read() should fulfill with { value: undefined, done: true }');
     test1.step(function() {
         var { reader } = factory();
@@ -314,7 +332,10 @@ function templatedRSClosedReader(label, factory) {
 };
 
 function templatedRSErroredReader(label, factory, error) {
-    var test1 = async_test('closed should reject with the error');
+    test(function() {
+    }, 'Running templatedRSErroredReader with ' + label);
+
+    var test1 = async_test('closed should reject with the error', { timeout: 50 });
     test1.step(function() {
         var { reader } = factory();
 
@@ -344,6 +365,9 @@ function templatedRSErroredReader(label, factory, error) {
 };
 
 function templatedRSTwoChunksOpenReader(label, factory, chunks) {
+    test(function() {
+    }, 'Running templatedRSTwoChunksOpenReader with ' + label);
+
     var test1 = async_test('calling read() twice without waiting will eventually give both chunks');
     test1.step(function() {
         var { reader } = factory();
@@ -406,6 +430,9 @@ function templatedRSTwoChunksOpenReader(label, factory, chunks) {
 };
 
 function templatedRSTwoChunksClosedReader(label, factory, chunks) {
+    test(function() {
+    }, 'Running templatedRSTwoChunksClosedReader with ' + label);
+
     var test1 = async_test('third read(), without waiting, should give { value: undefined, done: true }');
     test1.step(function() {
         var { reader } = factory();
@@ -470,7 +497,7 @@ function templatedRSTwoChunksClosedReader(label, factory, chunks) {
 
         reader.closed.then(test4.step_func(function() {
             assert_true(readCalled);
-            assert_does_not_throw(function() { reader.releaseLock(); }, 'releasing the lock after reader closed should not throw');
+            reader.releaseLock(); // Releasing the lock after reader closed should not throw.
             test4.done();
         }));
 
@@ -516,10 +543,8 @@ function templatedRSTwoChunksClosedReader(label, factory, chunks) {
 
             assert_equals(reader.closed, readerClosed, 'reader.closed is the same after releasing the lock');
 
-            assert_does_not_throw(function() {
-                var newReader = stream.getReader();
-                newReader.read();
-            });
+            var newReader = stream.getReader();
+            newReader.read();
 
             test6.done();
         }));

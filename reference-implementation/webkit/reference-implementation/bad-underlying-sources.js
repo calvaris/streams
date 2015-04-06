@@ -26,7 +26,7 @@ test(function() {
     }, 'constructing the stream should re-throw the error');
 }, 'Underlying source start: throwing method');
 
-var test1 = async_test('Underlying source: throwing pull getter (initial pull)');
+var test1 = async_test('Underlying source: throwing pull getter (initial pull)', { timeout: 50 });
 test1.step(function() {
     var theError = new Error('a unique string');
     var rs = new ReadableStream({
@@ -43,7 +43,7 @@ test1.step(function() {
         }));
 });
 
-var test2 = async_test('Underlying source: throwing pull method (initial pull)');
+var test2 = async_test('Underlying source: throwing pull method (initial pull)', { timeout: 50 });
 test2.step(function() {
     var theError = new Error('a unique string');
     var rs = new ReadableStream({
@@ -148,7 +148,7 @@ test6.step(function() {
         }));
 });
 
-var test7 = async_test('Underlying source: throwing strategy getter');
+var test7 = async_test('Underlying source: throwing strategy getter', { timeout: 50 });
 test7.step(function() {
     var started = false;
     var theError = new Error('a unique string');
@@ -170,7 +170,7 @@ test7.step(function() {
     }));
 });
 
-var test8 = async_test('Underlying source: throwing strategy.size getter');
+var test8 = async_test('Underlying source: throwing strategy.size getter', { timeout: 50 });
 test8.step(function() {
     var started = false;
     var theError = new Error('a unique string');
@@ -196,7 +196,7 @@ test8.step(function() {
     }));
 });
 
-var test9 = async_test('Underlying source: throwing strategy.size method');
+var test9 = async_test('Underlying source: throwing strategy.size method', { timeout: 50 });
 test9.step(function() {
     var started = false;
     var theError = new Error('a unique string');
@@ -222,7 +222,7 @@ test9.step(function() {
     }));
 });
 
-var test10 = async_test('Underlying source: throwing strategy.shouldApplyBackpressure getter');
+var test10 = async_test('Underlying source: throwing strategy.shouldApplyBackpressure getter', { timeout: 50 });
 test10.step(function() {
     var started = false;
     var theError = new Error('a unique string');
@@ -248,7 +248,7 @@ test10.step(function() {
     }));
 });
 
-var test11 = async_test('Underlying source: throwing strategy.shouldApplyBackpressure method');
+var test11 = async_test('Underlying source: throwing strategy.shouldApplyBackpressure method', { timeout: 50 });
 test11.step(function() {
     var started = false;
     var theError = new Error('a unique string');
@@ -274,7 +274,7 @@ test11.step(function() {
     }));
 });
 
-var test12 = async_test('Underlying source: strategy.size returning NaN');
+var test12 = async_test('Underlying source: strategy.size returning NaN', { timeout: 50 });
 test12.step(function() {
     var theError = undefined;
     var rs = new ReadableStream({
@@ -303,7 +303,7 @@ test12.step(function() {
     }));
 });
 
-var test13 = async_test('Underlying source: strategy.size returning -Infinity');
+var test13 = async_test('Underlying source: strategy.size returning -Infinity', { timeout: 50 });
 test13.step(function() {
     var theError = undefined;
     var rs = new ReadableStream({
@@ -332,7 +332,7 @@ test13.step(function() {
     }));
 });
 
-var test14 = async_test('Underlying source: strategy.size returning +Infinity');
+var test14 = async_test('Underlying source: strategy.size returning +Infinity', { timeout: 50 });
 test14.step(function() {
     var theError = undefined;
     var rs = new ReadableStream({
@@ -361,7 +361,7 @@ test14.step(function() {
     }));
 });
 
-var test15 = async_test('Underlying source: calling close twice on an empty stream should throw the second time');
+var test15 = async_test('Underlying source: calling close twice on an empty stream should throw the second time', { timeout: 50 });
 test15.step(function() {
     new ReadableStream({
         start: function(enqueue, close) {
@@ -407,7 +407,7 @@ test17.step(function() {
     });
 
     rs.cancel();
-    assert_does_not_throw(doClose, 'calling close after canceling should not throw anything');
+    doClose(); // Calling close after canceling should not throw anything.
 
     rs.getReader().closed.then(test17.step_func(function() {
         assert_true(startCalled);
@@ -428,7 +428,7 @@ test18.step(function() {
     });
 
     rs.cancel();
-    assert_does_not_throw(doClose, 'calling close after canceling should not throw anything');
+    doClose(); // Calling close after canceling should not throw anything.
 
     rs.getReader().closed.then(test18.step_func(function() {
         assert_true(startCalled);
@@ -436,7 +436,7 @@ test18.step(function() {
     }));
 });
 
-var test19 = async_test('Underlying source: calling close after error should throw');
+var test19 = async_test('Underlying source: calling close after error should throw', { timeout: 50 });
 test19.step(function() {
     var theError = new Error('boo');
     var startCalled = false;
@@ -453,7 +453,7 @@ test19.step(function() {
     }));
 });
 
-var test20 = async_test('Underlying source: calling error twice should throw the second time');
+var test20 = async_test('Underlying source: calling error twice should throw the second time', { timeout: 50 });
 test20.step(function() {
     var theError = new Error('boo');
     var startCalled = false;
@@ -470,7 +470,7 @@ test20.step(function() {
     }));
 });
 
-var test21 = async_test('Underlying source: calling error after close should throw');
+var test21 = async_test('Underlying source: calling error after close should throw', { timeout: 50 });
 test21.step(function() {
     var startCalled = false;
     new ReadableStream({
