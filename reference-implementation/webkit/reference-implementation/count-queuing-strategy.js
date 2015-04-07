@@ -19,7 +19,7 @@ var test1 = async_test('Correctly governs the return value of a ReadableStream\'
 test1.step(function() {
     var enqueue;
     var rs = new ReadableStream({
-        start: function(enqueue_) { enqueue = enqueue_; },
+        start: function(c) { enqueue = c.enqueue.bind(c); },
         strategy: new CountQueuingStrategy({ "highWaterMark": 0 })
     });
     var reader = rs.getReader();
@@ -54,7 +54,7 @@ var test2 = async_test('Correctly governs the return value of a ReadableStream\'
 test2.step(function() {
     var enqueue;
     var rs = new ReadableStream({
-        start: function(enqueue_) { enqueue = enqueue_; },
+        start: function(c) { enqueue = c.enqueue.bind(c); },
         strategy: new CountQueuingStrategy({ "highWaterMark": 1 })
     });
     var reader = rs.getReader();
@@ -89,7 +89,7 @@ var test3 = async_test('Correctly governs the return value of a ReadableStream\'
 test3.step(function() {
     var enqueue;
     var rs = new ReadableStream({
-        start: function(enqueue_) { enqueue = enqueue_; },
+        start: function(c) { enqueue = c.enqueue.bind(c); },
         strategy: new CountQueuingStrategy({ "highWaterMark": 4 })
     });
     var reader = rs.getReader();
