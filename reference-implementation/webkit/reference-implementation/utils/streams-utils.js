@@ -159,20 +159,24 @@ function sequentialReadableStream(limit, options) {
             });
         },
 
-        pull: function(enqueue, finish, error) {
-            sequentialSource.read(function(err, done, chunk) {
-                if (err) {
-                    error(err);
-                } else if (done) {
-                    sequentialSource.close(function(err) {
-                        if (err) {
-                            error(err);
-                        }
-                        finish();
-                    });
-                } else {
-                    enqueue(chunk);
-                }
+        pull: function(c) {
+            return new Promise(function(resolve, reject) {
+                sequentialSource.read(function(err, done, chunk) {
+                    if (err) {
+                        error(err);
+                    } else if (done) {
+                        sequentialSource.close(function(err) {
+                            if (err) {
+                                reject(err);
+                            }
+                            c.close();
+                            resolve();
+                        });
+                    } else {
+                        c.enqueue(chunk);
+                        resolve();
+                    }
+                });
             });
         },
     });
