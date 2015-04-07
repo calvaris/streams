@@ -8,10 +8,10 @@ test1.step(function() {
 
     var cancellationFinished = false;
     var rs = new ReadableStream({
-        start: function(enqueue, close, error) {
-            randomSource.ondata = enqueue;
-            randomSource.onend = close;
-            randomSource.onerror = error;
+        start: function(c) {
+            randomSource.ondata = c.enqueue.bind(c);
+            randomSource.onend = c.close.bind(c);
+            randomSource.onerror = c.error.bind(c);
         },
 
         pull: function() {
@@ -66,9 +66,9 @@ test(function() {
 var test2 = async_test('ReadableStream cancellation: cancel() on a locked stream should fail and not call the underlying source cancel');
 test2.step(function() {
     var rs = new ReadableStream({
-        start: function(enqueue, close) {
-            enqueue('a');
-            close();
+        start: function(c) {
+            c.enqueue('a');
+            c.close();
         },
         cancel: function() {
             assert_unreached('underlying source cancel() should not have been called');
