@@ -29,8 +29,8 @@ test(function() {
 
 test(function() {
     var rs = new ReadableStream({
-        start: function(enqueue, close) {
-            close();
+        start: function(c) {
+            c.close();
         }
     });
 
@@ -40,8 +40,8 @@ test(function() {
 test(function() {
     var theError = new Error('don\'t say i didn\'t warn ya');
     var rs = new ReadableStream({
-        start: function(enqueue, close, error) {
-            error(theError);
+        start: function(c) {
+            c.error(theError);
         }
     });
 
@@ -50,10 +50,10 @@ test(function() {
 
 var test1 = async_test('Reading from a reader for an empty stream will wait until a chunk is available');
 test1.step(function() {
-    var enqueue;
+    var controller;
     var rs = new ReadableStream({
-        start: function(e) {
-            enqueue = e;
+        start: function(c) {
+            controller = c;
         }
     });
     var reader = rs.getReader();
@@ -63,7 +63,7 @@ test1.step(function() {
         test1.done();
     }));
 
-    enqueue('a');
+    controller.enqueue('a');
 });
 
 var test2 = async_test('cancel() on a reader releases the reader before calling through');
@@ -89,10 +89,10 @@ test2.step(function() {
 
 var test3 = async_test('closed should be fulfilled after stream is closed (.closed access before acquiring)');
 test3.step(function() {
-    var doClose;
+    var controller;
     var rs = new ReadableStream({
-        start: function(enqueue, close) {
-            doClose = close;
+        start: function(c) {
+            controller = c;
         }
     });
 
@@ -101,16 +101,16 @@ test3.step(function() {
         test3.done('reader closed should be fulfilled');
     }));
 
-    doClose();
+    controller.close();
 });
 
 var test4 = async_test('closed should be fulfilled after reader releases its lock (multiple stream locks)');
 test4.step(function() {
-    var doClose;
+    var controller;
     var reader1Closed = false;
     var rs = new ReadableStream({
-        start: function(enqueue, close) {
-            doClose = close;
+        start: function(c) {
+            controller = c;
         }
     });
 
@@ -119,7 +119,7 @@ test4.step(function() {
     reader1.releaseLock();
 
     var reader2 = rs.getReader();
-    doClose();
+    controller.close();
 
     reader1.closed.then(test4.step_func(function() {
         reader1Closed = true;
@@ -135,10 +135,10 @@ var test5 = async_test('Multiple readers can access the stream in sequence');
 test5.step(function() {
     var readCount = 0;
     var rs = new ReadableStream({
-        start: function(enqueue, close) {
-            enqueue('a');
-            enqueue('b');
-            close();
+        start: function(c) {
+            c.enqueue('a');
+            c.enqueue('b');
+            c.close();
         }
     });
 
@@ -165,8 +165,8 @@ test5.step(function() {
 var test6 = async_test('Cannot use an already-released reader to unlock a stream again');
 test6.step(function() {
     var rs = new ReadableStream({
-        start: function(enqueue) {
-            enqueue('a');
+        start: function(c) {
+            c.enqueue('a');
         }
     });
 
@@ -187,8 +187,8 @@ test7.step(function() {
     var readCounts = 0;
     var cancelled = false;
     var rs = new ReadableStream({
-        start: function(enqueue) {
-            enqueue('a');
+        start: function(c) {
+            c.enqueue('a');
         },
         cancel: function() {
             assert_unreached('underlying source cancel should not be called');
@@ -217,12 +217,12 @@ test7.step(function() {
 
 var test8 = async_test('Getting a second reader after erroring the stream should succeed');
 test8.step(function() {
-    var doError;
+    var controller;
     var receivedErrors = 0;
     var theError = new Error('bad');
     var rs = new ReadableStream({
-        start: function(enqueue, close, error) {
-            doError = error;
+        start: function(c) {
+            controller = c;
         }
     });
 
@@ -240,7 +240,7 @@ test8.step(function() {
 
     assert_throws(new TypeError(), function() { rs.getReader(); }, 'trying to get another reader before erroring should throw');
 
-    doError(theError);
+    controller.error(theError);
 
     rs.getReader().closed.catch(test8.step_func(function(e) {
         assert_equals(e, theError, 'the second reader closed getter should be rejected with the error');
