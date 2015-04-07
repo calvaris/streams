@@ -563,21 +563,21 @@ templatedRSEmptyReader('ReadableStream (empty) reader', function() {
 
 templatedRSClosed('ReadableStream (closed via call in start)', function() {
     return new ReadableStream({
-        start: function(enqueue, close) {
-            close();
+        start: function(c) {
+            c.close();
         }
     });
 });
 
 templatedRSClosedReader('ReadableStream (closed via call in start) reader', function() {
-    var doClose;
+    var controller;
     var stream = new ReadableStream({
-        start: function(enqueue, close) {
-            doClose = close;
+        start: function(c) {
+            controller = c;
         }
     });
     var result = streamAndDefaultReader(stream);
-    doClose();
+    controller.close();
     return result;
 });
 
@@ -598,8 +598,8 @@ var theError = new Error('boo!');
 
 templatedRSErrored('ReadableStream (errored via call in start)', function() {
     return new ReadableStream({
-        start: function(enqueue, close, error) {
-            error(theError);
+        start: function(c) {
+            c.error(theError);
         }
     })},
     theError
@@ -607,8 +607,8 @@ templatedRSErrored('ReadableStream (errored via call in start)', function() {
 
 templatedRSErroredSyncOnly('ReadableStream (errored via call in start)', function() {
     return new ReadableStream({
-        start: function(enqueue, close, error) {
-            error(theError);
+        start: function(c) {
+            c.error(theError);
         }
     })},
     theError
@@ -616,7 +616,7 @@ templatedRSErroredSyncOnly('ReadableStream (errored via call in start)', functio
 
 templatedRSErrored('ReadableStream (errored via returning a rejected promise in start)', function() {
     return new ReadableStream({
-        start: function(enqueue, close, error) {
+        start: function() {
             return Promise.reject(theError);
         }
     })},
@@ -625,7 +625,7 @@ templatedRSErrored('ReadableStream (errored via returning a rejected promise in 
 
 templatedRSErroredReader('ReadableStream (errored via returning a rejected promise in start) reader', function() {
     return streamAndDefaultReader(new ReadableStream({
-        start: function(enqueue, close, error) {
+        start: function() {
             return Promise.reject(theError);
         }
     }))},
@@ -636,9 +636,9 @@ var chunks = ['a', 'b'];
 
 templatedRSTwoChunksOpenReader('ReadableStream (two chunks enqueued, still open) reader', function() {
     return streamAndDefaultReader(new ReadableStream({
-        start: function(enqueue) {
-            enqueue(chunks[0]);
-            enqueue(chunks[1]);
+        start: function(c) {
+            c.enqueue(chunks[0]);
+            c.enqueue(chunks[1]);
         }
     }))},
     chunks
@@ -647,10 +647,10 @@ templatedRSTwoChunksOpenReader('ReadableStream (two chunks enqueued, still open)
 templatedRSTwoChunksClosedReader('ReadableStream (two chunks enqueued, then closed) reader', function() {
     var doClose;
     var stream = new ReadableStream({
-        start: function(enqueue, close) {
-            enqueue(chunks[0]);
-            enqueue(chunks[1]);
-            doClose = close;
+        start: function(c) {
+            c.enqueue(chunks[0]);
+            c.enqueue(chunks[1]);
+            doClose = c.close.bind(c);
         }
     });
     var result = streamAndDefaultReader(stream);
