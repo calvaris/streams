@@ -182,22 +182,6 @@ function sequentialReadableStream(limit, options) {
     return stream;
 };
 
-function CountQueuingStrategy(highWaterMark) {
-    highWaterMark = Number(highWaterMark);
-
-    this._highWaterMark = highWaterMark;
-}
-
-CountQueuingStrategy.prototype = {
-
-    shouldApplyBackpressure: function(queueSize) {
-        return queueSize > this._highWaterMark;
-    },
-    size: function(chunk) {
-        return 1;
-    },
-}
-
 function expose(object, name)
 {
     var components = name.split(".");
