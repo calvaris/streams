@@ -3,11 +3,21 @@ require('../resources/testharness');
 require('./utils/streams-utils');
 
 var ReadableStreamReader;
+var ReadableStreamController;
 
 test(function() {
     // It's not exposed globally, but we test a few of its properties here.
     ReadableStreamReader = (new ReadableStream()).getReader().constructor;
 }, 'Can get the ReadableStreamReader constructor indirectly');
+
+test(function() {
+    // It's not exposed globally, but we test a few of its properties here.
+    new ReadableStream({
+        start: function(c) {
+            ReadableStreamController = c.constructor;
+        }
+    });
+}, 'Can get the ReadableStreamController constructor indirectly');
 
 function fakeReadableStream() {
     return {
@@ -28,6 +38,14 @@ function fakeReadableStreamReader() {
         cancel: function(reason) { return Promise.resolve(); },
         read: function() { return Promise.resolve({ value: undefined, done: true }); },
         releaseLock: function() { return; }
+    };
+}
+
+function fakeReadableStreamController() {
+    return {
+        close: function() { },
+        enqueue: function(chunk) { },
+        error: function(e) { }
     };
 }
 
@@ -94,7 +112,7 @@ function methodThrows(obj, methodName, target) {
 }
 
 test(function() {
-    assert_throws(new TypeError(), function() { new ReadableStreamReader(fakeReadableStream()); }, 'Contructing a ReadableStreamReader should throw');
+    assert_throws(new TypeError(), function() { new ReadableStreamReader(fakeReadableStream()); }, 'Constructing a ReadableStreamReader should throw');
 }, 'ReadableStreamReader enforces a brand check on its argument');
 
 var test1 = async_test('ReadableStreamReader.prototype.closed enforces a brand check');
@@ -119,6 +137,26 @@ test(function() {
     methodThrows(ReadableStreamReader.prototype, 'releaseLock', fakeReadableStreamReader());
     methodThrows(ReadableStreamReader.prototype, 'releaseLock', realReadableStream());
 }, 'ReadableStreamReader.prototype.releaseLock enforces a brand check');
+
+test(function() {
+    assert_throws(new TypeError(), function() { new ReadableStreamController(fakeReadableStream()); }, 'Constructing a ReadableStreamController should throw');
+}, 'ReadableStreamController enforces a brand check on its argument');
+
+test(function() {
+    assert_throws(new TypeError(), function() { new ReadableStreamController(realReadableStream()); }, 'Constructing a ReadableStreamController should throw');
+}, 'ReadableStreamController can\'t be given a fully-constructed ReadableStream');
+
+test(function() {
+  methodThrows(ReadableStreamController.prototype, 'close', fakeReadableStreamController());
+}, 'ReadableStreamController.prototype.close enforces a brand check');
+
+test(function() {
+  methodThrows(ReadableStreamController.prototype, 'enqueue', fakeReadableStreamController());
+}, 'ReadableStreamController.prototype.enqueue enforces a brand check');
+
+test(function() {
+  methodThrows(ReadableStreamController.prototype, 'error', fakeReadableStreamController());
+}, 'ReadableStreamController.prototype.error enforces a brand check');
 
 test(function() {
     methodThrows(ByteLengthQueuingStrategy.prototype, 'shouldApplyBackpressure', fakeByteLengthQueuingStrategy());
