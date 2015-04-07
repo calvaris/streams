@@ -12,11 +12,11 @@ var test1 = async_test('ReadableStream start should be able to return a promise'
 test1.step(function()
 {
     var rs = new ReadableStream({
-        start: function(enqueue, close, error) {
+        start: function(c) {
             return new Promise(test1.step_func(function(resolve, reject) {
                 setTimeout(test1.step_func(function() {
-                    enqueue('potato');
-                    close();
+                    c.enqueue('potato');
+                    c.close();
                     resolve();
                 }), 50);
             }));
@@ -64,11 +64,11 @@ test3.step(function() {
     ];
 
     var rs = new ReadableStream({
-        start: function(enqueue, close, error) {
+        start: function(c) {
             for (var i = 0; i < objects.length; i++) {
-                enqueue(objects[i]);
+                c.enqueue(objects[i]);
             }
-            close();
+            c.close();
         }
     });
 
