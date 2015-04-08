@@ -180,3 +180,73 @@ test6.step(function() {
         test6.done('pull should never have been called');
     })).catch(test6.step_func(function(e) { assert_reached(e); } ));
 });
+
+var test7 = async_test('ReadableStream cancel should fulfill promise when cancel callback went fine');
+test7.step(function()
+{
+    var cancelReceived = false;
+    var cancelReason = "I am tired of this stream, I prefer to cancel it";
+    var rs = new ReadableStream({
+        cancel: function(reason) {
+            cancelReceived = true;
+            assert_equals(reason, cancelReason);
+        }
+    });
+    rs.cancel(cancelReason).then(
+        test7.step_func(function() {
+            assert_true(cancelReceived);
+            test7.done();
+        }),
+        test7.step_func(function(e) {
+            assert_unreached("received error " + e)
+        }));
+});
+
+var test8 = async_test('ReadableStream cancel should reject promise when cancel callback raises an exception');
+test8.step(function()
+{
+    var thrownError = undefined;
+
+    var rs = new ReadableStream({
+        cancel: function(error) {
+            thrownError = new Error(error);
+            throw thrownError;
+        }
+    });
+
+    rs.cancel("test").then(
+        test8.step_func(function() {
+            assert_unreached("cancel should fail")
+        }),
+        test8.step_func(function(e) {
+            assert_not_equals(thrownError, undefined);
+            assert_equals(e, thrownError);
+            test8.done();
+        })
+    );
+});
+
+var test9 = async_test('ReadableStream cancel should fulfill promise when cancel callback went fine after returning a promise');
+test9.step(function()
+{
+    var cancelReason = "test";
+
+    var rs = new ReadableStream({
+        cancel: function(error) {
+            assert_equals(error, cancelReason);
+            return new Promise(test9.step_func(function(resolve, reject) {
+                setTimeout(test9.step_func(function() {
+                    resolve();
+                }), 50);
+            }))
+        }
+    })
+
+    rs.cancel(cancelReason).then(
+        test9.step_func(function() {
+            test9.done();
+        }),
+        test9.step_func(function(e) {
+            assert_unreached("received error " + e)
+        }))
+});
