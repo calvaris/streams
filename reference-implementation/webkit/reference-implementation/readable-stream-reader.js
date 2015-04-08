@@ -2,6 +2,8 @@ require('../resources/testharness');
 
 require('./utils/streams-utils');
 
+require('../../test/utils/gc');
+
 var ReadableStreamReader;
 
 test(function() {
@@ -314,3 +316,10 @@ test8.step(function() {
         test8.done();
     }));
 });
+
+test(function() {
+    var rs = new ReadableStream({});
+    rs.getReader();
+    global.gc();
+    assert_throws(new TypeError(), function() { rs.getReader(); });
+}, 'Collecting a ReadableStreamReader should not unlock its stream');
