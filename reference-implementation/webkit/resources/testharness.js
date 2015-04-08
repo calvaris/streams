@@ -197,6 +197,13 @@
         assert(actual > expected, "expected a number greater than " + expected + " but got " + actual, "assert_greater_than", description);
     }
 
+    function _assert_own_property(name) {
+        return function(object, property_name, description)
+        {
+            assert(object.hasOwnProperty(property_name), "expected property " + property_name + " missing", name, description);
+        };
+    }
+
     function AsyncTest(description) {
         this._description = description;
         this._error = undefined;
@@ -316,6 +323,8 @@
     expose(assert_array_equals, "assert_array_equals");
     expose(assert_object_equals, "assert_object_equals");
     expose(assert_greater_than, "assert_greater_than");
+    expose(_assert_own_property("assert_exists"), "assert_exists");
+    expose(_assert_own_property("assert_own_property"), "assert_own_property");
     expose(test, 'test');
     expose(async_test, 'async_test');
 })();
