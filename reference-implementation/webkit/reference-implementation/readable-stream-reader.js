@@ -10,22 +10,83 @@ test(function() {
 }, 'Can get the ReadableStreamReader constructor indirectly');
 
 test(function() {
+    assert_throws(new TypeError(), function() {
+        new ReadableStreamReader('potato');
+    });
+    assert_throws(new TypeError(), function() {
+        new ReadableStreamReader({});
+    });
+    assert_throws(new TypeError(), function() {
+        new ReadableStreamReader();
+    });
+}, 'ReadableStreamReader constructor should get a ReadableStream object as argument');
+
+test(function() {
+    var rsReader = new ReadableStreamReader(new ReadableStream());
+
+    // assert_array_equals(Object.getOwnPropertyNames(rsReader), []);
+    assert_array_equals(Object.getOwnPropertyNames(Object.getPrototypeOf(rsReader)).sort(), [ 'cancel', 'closed', 'constructor', 'read', 'releaseLock' ]);
+
+    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rsReader), 'cancel').enumerable);
+    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rsReader), 'cancel').configurable);
+    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rsReader), 'cancel').writable);
+
+    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rsReader), 'closed').enumerable);
+    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rsReader), 'closed').configurable);
+
+    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rsReader), 'constructor').configurable);
+    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rsReader), 'constructor').writable);
+
+    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rsReader), 'read').enumerable);
+    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rsReader), 'read').configurable);
+    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rsReader), 'read').writable);
+
+    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rsReader), 'releaseLock').enumerable);
+    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rsReader), 'releaseLock').configurable);
+    assert_true(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(rsReader), 'releaseLock').writable);
+
+    assert_equals(typeof rsReader.cancel, 'function', 'has a cancel method');
+    assert_equals(rsReader.cancel.length, 1);
+    assert_exists(Object.getPrototypeOf(rsReader), 'closed', 'has a closed property');
+    assert_equals(typeof rsReader.closed.then, 'function', 'closed property is thenable');
+    assert_equals(typeof rsReader.constructor, 'function', 'has a constructor method');
+    assert_equals(rsReader.constructor.length, 1, 'constructor has 1 parameter');
+    assert_equals(typeof rsReader.read, 'function', 'has a getReader method');
+    assert_equals(rsReader.read.length, 0);
+    assert_equals(typeof rsReader.releaseLock, 'function', 'has a releaseLock method');
+    assert_equals(rsReader.releaseLock.length, 0);
+
+}, 'ReadableStream instances should have the correct list of properties');
+
+test(function() {
+    var rsReader = new ReadableStreamReader(new ReadableStream());
+
+    assert_equals(rsReader.closed, rsReader.closed);
+}, 'ReadableStreamReader closed should always return the same promise object');
+
+test(function() {
     var rs = new ReadableStream();
-    new ReadableStreamReader(rs); // Constructing directly the first time should be fine.
-    assert_throws(new TypeError(), function() { new ReadableStreamReader(rs); }, 'constructing directly the second time should fail');
+    new ReadableStreamReader(rs); // Constructing directly should be fine.
+    assert_throws(new TypeError(), function() { new ReadableStreamReader(rs); }, 'constructing directly should fail');
 }, 'Constructing a ReadableStreamReader directly should fail if the stream is already locked (via direct construction)');
 
 test(function() {
     var rs = new ReadableStream();
     new ReadableStreamReader(rs); // Constructing directly should be fine.
     assert_throws(new TypeError(), function() { rs.getReader(); }, 'getReader() should fail');
-}, 'Getting a ReadableStreamReader via getReader should fail if the stream is already locked (via direct construction');
+}, 'Getting a ReadableStreamReader via getReader should fail if the stream is already locked (via direct construction)');
 
 test(function() {
     var rs = new ReadableStream();
     rs.getReader(); // getReader() should be fine.
     assert_throws(new TypeError(), function() { new ReadableStreamReader(rs); }, 'constructing directly should fail');
 }, 'Constructing a ReadableStreamReader directly should fail if the stream is already locked (via getReader)');
+
+test(function() {
+    var rs = new ReadableStream();
+    rs.getReader(); // getReader() should be fine.
+    assert_throws(new TypeError(), function() { rs.getReader(); }, 'getReader() should fail');
+}, 'Getting a ReadableStreamReader via getReader should fail if the stream is already locked (via direct getReader)');
 
 test(function() {
     var rs = new ReadableStream({
