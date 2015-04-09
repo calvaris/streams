@@ -290,7 +290,7 @@ function templatedRSClosedReader(label, factory) {
         );
     });
 
-    var test2 = async_test('closed should fulfill with undefined');
+    var test2 = async_test('closed should fulfill with undefined', { timeout: 50});
     test2.step(function() {
         var { reader } = factory();
 
