@@ -11,6 +11,12 @@ test(function() {
 }, 'ReadableStream can be constructed with an empty object as argument');
 
 test(function() {
+    assert_throws(new TypeError(), function() {
+        new ReadableStream(null);
+    }, 'constructor can\'t receive null');
+}, 'ReadableStream can\'t be constructed with garbage');
+
+test(function() {
     var rs = new ReadableStream();
 
     // assert_array_equals(Object.getOwnPropertyNames(rs), []);
@@ -56,13 +62,77 @@ test(function() {
 }, 'ReadableStream instances should have the correct list of properties');
 
 test(function() {
-    assert_throws(
-        new TypeError(),
-        function() {
-            new ReadableStream({ start: 'potato'});
-        },
-        'constructor should throw when start is not a function');
+    assert_throws(new TypeError(), function() {
+        new ReadableStream({ start: 'potato'});
+    }, 'constructor should throw when start is a string');
 }, 'ReadableStream constructor should get a function as start argument');
+
+test(function()
+{
+    var isStartCalled = false;
+    var source = {
+        start: function(controller) {
+            assert_equals(this, source);
+
+            assert_array_equals(Object.getOwnPropertyNames(Object.getPrototypeOf(controller)).sort(), [ 'close', 'constructor', 'enqueue', 'error' ]);
+
+            var enqueue = controller.enqueue;
+            var close = controller.close;
+            var error = controller.error;
+
+            assert_equals(typeof enqueue, 'function');
+            assert_equals(typeof close, 'function');
+            assert_equals(typeof error, 'function');
+
+            assert_array_equals(Object.getOwnPropertyNames(enqueue).sort(), [ 'arguments', 'caller', 'length', 'name', 'prototype' ]);
+            assert_array_equals(Object.getOwnPropertyNames(close).sort(), [ 'arguments', 'caller', 'length', 'name', 'prototype' ]);
+            assert_array_equals(Object.getOwnPropertyNames(error).sort(), [ 'arguments', 'caller', 'length', 'name', 'prototype' ]);
+
+            assert_equals(enqueue.name, '');
+            assert_equals(close.name, '');
+            assert_equals(error.name, '');
+
+            assert_equals(enqueue.length, 1);
+            assert_equals(close.length, 0);
+            assert_equals(error.length, 1);
+
+            isStartCalled = true;
+        }
+    };
+
+    var rs = new ReadableStream(source);
+    assert_true(isStartCalled);
+}, 'ReadableStream start should be called with the proper parameters');
+
+test(function()
+{
+    var isStartCalled = false;
+    var source = {
+        start: function(controller) {
+            assert_array_equals(Object.getOwnPropertyNames(Object.getPrototypeOf(controller)).sort(), [ 'close', 'constructor', 'enqueue', 'error' ]);
+            controller.test = "";
+            assert_array_equals(Object.getOwnPropertyNames(Object.getPrototypeOf(controller)).sort(), [ 'close', 'constructor', 'enqueue', 'error' ]);
+            assert_not_equals(Object.getOwnPropertyNames(controller).indexOf('test'));
+
+            isStartCalled = true;
+        }
+    };
+
+    var rs = new ReadableStream(source);
+    assert_true(isStartCalled);
+}, 'ReadableStream start controller parameter should be updatable');
+
+test(function()
+{
+    var isStartCalled = false;
+
+    var SimpleStreamSource = function() { };
+    SimpleStreamSource.prototype.start = function() { isStartCalled = true; };
+    SimpleStreamSource.prototype.constructor = SimpleStreamSource;
+
+    var rs = new ReadableStream(new SimpleStreamSource());
+    assert_true(isStartCalled);
+}, 'ReadableStream should be able to call start method within prototype chain of its source');
 
 test(function() {
     new ReadableStream({ cancel: '2'}); // Constructor should not throw when cancel is not a function.
