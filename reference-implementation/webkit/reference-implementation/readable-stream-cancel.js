@@ -90,99 +90,8 @@ test2.step(function() {
     }));
 });
 
-var test3 = async_test('ReadableStream cancellation: returning a value from the underlying source\'s cancel should not affect the fulfillment value of the promise returned by the stream\'s cancel');
-test3.step(function() {
-    var rs = new ReadableStream({
-        cancel: function(reason) {
-            return 'Hello';
-        }
-    });
-
-    rs.cancel().then(test3.step_func(function(v) {
-        assert_equals(v, undefined, 'cancel() return value should be fulfilled with undefined');
-        test3.done();
-    }), test3.step_func(function() {
-        assert_unreached('cancel() return value should not be rejected');
-    }));
-});
-
-var test4 = async_test('ReadableStream cancellation: if the underlying source\'s cancel method returns a promise, the promise returned by the stream\'s cancel should fulfill when that one does');
-test4.step(function() {
-    var resolveSourceCancelPromise;
-    var sourceCancelPromiseHasFulfilled = false;
-    var rs = new ReadableStream({
-        cancel: function() {
-            var sourceCancelPromise = new Promise(test4.step_func(function(resolve, reject) {
-                resolveSourceCancelPromise = resolve;
-            }));
-
-            sourceCancelPromise.then(test4.step_func(function() {
-                sourceCancelPromiseHasFulfilled = true;
-            }));
-
-            return sourceCancelPromise;
-        }
-    });
-
-    rs.cancel().then(test4.step_func(function(value) {
-        assert_equals(sourceCancelPromiseHasFulfilled, true, 'cancel() return value should be fulfilled only after the promise returned by the underlying source\'s cancel');
-        assert_equals(value, undefined, 'cancel() return value should be fulfilled with undefined');
-        test4.done();
-    }), test4.step_func(function() { assert_unreached('cancel() return value should not be rejected'); } ));
-
-    setTimeout(test4.step_func(function() {
-        resolveSourceCancelPromise('Hello');
-    }), 30);
-});
-
-var test5 = async_test('ReadableStream cancellation: if the underlying source\'s cancel method returns a promise, the promise returned by the stream\'s cancel should reject when that one does');
-test5.step(function() {
-    var rejectSourceCancelPromise;
-    var sourceCancelPromiseHasRejected = false;
-    var rs = new ReadableStream({
-        cancel: function() {
-            var sourceCancelPromise = new Promise(test5.step_func(function(resolve, reject) {
-                rejectSourceCancelPromise = reject;
-            }));
-
-            sourceCancelPromise.catch(test5.step_func(function() {
-                sourceCancelPromiseHasRejected = true;
-            }));
-
-            return sourceCancelPromise;
-        }
-    });
-
-    var errorInCancel = new Error('Sorry, it just wasn\'t meant to be.');
-
-    rs.cancel().then(
-        test5.step_func(function() { assert_function('cancel() return value should not be rejected'); }),
-        test5.step_func(function(r) {
-            assert_equals(sourceCancelPromiseHasRejected, true, 'cancel() return value should be rejected only after the promise returned by the underlying source\'s cancel');
-            assert_equals(r, errorInCancel, 'cancel() return value should be rejected with the underlying source\'s rejection reason');
-            test5.done();
-        }));
-
-    setTimeout(test5.step_func(function() {
-        rejectSourceCancelPromise(errorInCancel);
-    }), 30);
-});
-
-var test6 = async_test('ReadableStream cancellation: cancelling before start finishes should prevent pull() from being called');
-test6.step(function() {
-    var rs = new ReadableStream({
-        pull: function() {
-            assert_unreached('pull should not have been called');
-        }
-    });
-
-    Promise.all([rs.cancel(), rs.getReader().closed]).then(test6.step_func(function() {
-        test6.done('pull should never have been called');
-    })).catch(test6.step_func(function(e) { assert_reached(e); } ));
-});
-
-var test7 = async_test('ReadableStream cancel should fulfill promise when cancel callback went fine');
-test7.step(function()
+var test3 = async_test('ReadableStream cancellation: should fulfill promise when cancel callback went fine');
+test3.step(function()
 {
     var cancelReceived = false;
     var cancelReason = "I am tired of this stream, I prefer to cancel it";
@@ -193,17 +102,62 @@ test7.step(function()
         }
     });
     rs.cancel(cancelReason).then(
-        test7.step_func(function() {
+        test3.step_func(function() {
             assert_true(cancelReceived);
-            test7.done();
+            test3.done('stream was successfully cancelled');
         }),
-        test7.step_func(function(e) {
+        test3.step_func(function(e) {
             assert_unreached("received error " + e)
         }));
 });
 
-var test8 = async_test('ReadableStream cancel should reject promise when cancel callback raises an exception');
-test8.step(function()
+var test4 = async_test('ReadableStream cancellation: returning a value from the underlying source\'s cancel should not affect the fulfillment value of the promise returned by the stream\'s cancel');
+test4.step(function() {
+    var rs = new ReadableStream({
+        cancel: function(reason) {
+            return 'Hello';
+        }
+    });
+
+    rs.cancel().then(test4.step_func(function(v) {
+        assert_equals(v, undefined, 'cancel() return value should be fulfilled with undefined');
+        test4.done();
+    }), test4.step_func(function() {
+        assert_unreached('cancel() return value should not be rejected');
+    }));
+});
+
+var test5 = async_test('ReadableStream cancellation: if the underlying source\'s cancel method returns a promise, the promise returned by the stream\'s cancel should fulfill when that one does');
+test5.step(function() {
+    var resolveSourceCancelPromise;
+    var sourceCancelPromiseHasFulfilled = false;
+    var rs = new ReadableStream({
+        cancel: function() {
+            var sourceCancelPromise = new Promise(test5.step_func(function(resolve, reject) {
+                resolveSourceCancelPromise = resolve;
+            }));
+
+            sourceCancelPromise.then(test5.step_func(function() {
+                sourceCancelPromiseHasFulfilled = true;
+            }));
+
+            return sourceCancelPromise;
+        }
+    });
+
+    rs.cancel().then(test5.step_func(function(value) {
+        assert_equals(sourceCancelPromiseHasFulfilled, true, 'cancel() return value should be fulfilled only after the promise returned by the underlying source\'s cancel');
+        assert_equals(value, undefined, 'cancel() return value should be fulfilled with undefined');
+        test5.done();
+    }), test5.step_func(function() { assert_unreached('cancel() return value should not be rejected'); } ));
+
+    setTimeout(test5.step_func(function() {
+        resolveSourceCancelPromise('Hello');
+    }), 30);
+});
+
+var test6 = async_test('ReadableStream cancellation: should reject promise when cancel callback raises an exception');
+test6.step(function()
 {
     var thrownError = undefined;
 
@@ -215,27 +169,27 @@ test8.step(function()
     });
 
     rs.cancel("test").then(
-        test8.step_func(function() {
+        test6.step_func(function() {
             assert_unreached("cancel should fail")
         }),
-        test8.step_func(function(e) {
+        test6.step_func(function(e) {
             assert_not_equals(thrownError, undefined);
             assert_equals(e, thrownError);
-            test8.done();
+            test6.done();
         })
     );
 });
 
-var test9 = async_test('ReadableStream cancel should fulfill promise when cancel callback went fine after returning a promise');
-test9.step(function()
+var test7 = async_test('ReadableStream cancellation: if the underlying source\'s cancel method returns a promise, the promise returned by the stream\'s cancel should fulfill when that one does (1)');
+test7.step(function()
 {
     var cancelReason = "test";
 
     var rs = new ReadableStream({
         cancel: function(error) {
             assert_equals(error, cancelReason);
-            return new Promise(test9.step_func(function(resolve, reject) {
-                setTimeout(test9.step_func(function() {
+            return new Promise(test7.step_func(function(resolve, reject) {
+                setTimeout(test7.step_func(function() {
                     resolve();
                 }), 50);
             }))
@@ -243,10 +197,56 @@ test9.step(function()
     })
 
     rs.cancel(cancelReason).then(
-        test9.step_func(function() {
-            test9.done();
+        test7.step_func(function() {
+            test7.done('stream successfully cancelled');
         }),
-        test9.step_func(function(e) {
+        test7.step_func(function(e) {
             assert_unreached("received error " + e)
         }))
+});
+
+var test8 = async_test('ReadableStream cancellation: if the underlying source\'s cancel method returns a promise, the promise returned by the stream\'s cancel should fulfill when that one does (2)');
+test8.step(function() {
+    var rejectSourceCancelPromise;
+    var sourceCancelPromiseHasRejected = false;
+    var rs = new ReadableStream({
+        cancel: function() {
+            var sourceCancelPromise = new Promise(test8.step_func(function(resolve, reject) {
+                rejectSourceCancelPromise = reject;
+            }));
+
+            sourceCancelPromise.catch(test8.step_func(function() {
+                sourceCancelPromiseHasRejected = true;
+            }));
+
+            return sourceCancelPromise;
+        }
+    });
+
+    var errorInCancel = new Error('Sorry, it just wasn\'t meant to be.');
+
+    rs.cancel().then(
+        test8.step_func(function() { assert_function('cancel() return value should not be rejected'); }),
+        test8.step_func(function(r) {
+            assert_equals(sourceCancelPromiseHasRejected, true, 'cancel() return value should be rejected only after the promise returned by the underlying source\'s cancel');
+            assert_equals(r, errorInCancel, 'cancel() return value should be rejected with the underlying source\'s rejection reason');
+            test8.done();
+        }));
+
+    setTimeout(test8.step_func(function() {
+        rejectSourceCancelPromise(errorInCancel);
+    }), 30);
+});
+
+var test9 = async_test('ReadableStream cancellation: cancelling before start finishes should prevent pull() from being called');
+test9.step(function() {
+    var rs = new ReadableStream({
+        pull: function() {
+            assert_unreached('pull should not have been called');
+        }
+    });
+
+    Promise.all([rs.cancel(), rs.getReader().closed]).then(test9.step_func(function() {
+        test9.done('pull should never have been called');
+    })).catch(test9.step_func(function(e) { assert_reached(e); } ));
 });
