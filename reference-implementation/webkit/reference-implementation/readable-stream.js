@@ -3,12 +3,12 @@ require('../resources/testharness');
 require('./utils/streams-utils');
 
 test(function() {
-    new ReadableStream(); // ReadableStream constructed with no errors.
-}, 'ReadableStream can be constructed with no arguments');
-
-test(function() {
-    new ReadableStream({ });
-}, 'ReadableStream can be constructed with an empty object as argument');
+    new ReadableStream(); // ReadableStream constructed with no parameters.
+    new ReadableStream({ }); // ReadableStream constructed with an empty object as parameter.
+    new ReadableStream(undefined); // ReadableStream constructed with undefined as parameter.
+    var x;
+    new ReadableStream(x) // ReadableStream constructed with an undefined variable as parameter.
+}, 'ReadableStream can be constructed with no errors');
 
 test(function() {
     assert_throws(new TypeError(), function() {
