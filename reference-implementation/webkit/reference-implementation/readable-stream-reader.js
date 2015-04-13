@@ -4,6 +4,8 @@ require('./utils/streams-utils');
 
 require('../../test/utils/gc');
 
+var standardTimeout = 100;
+
 var ReadableStreamReader;
 
 test(function() {
@@ -222,7 +224,7 @@ test5.step(function() {
     setTimeout(test5.step_func(function() {
         assert_equals(readCount, 2);
         test5.done();
-    }), 50);
+    }), standardTimeout);
 });
 
 var test6 = async_test('Cannot use an already-released reader to unlock a stream again');
@@ -275,7 +277,7 @@ test7.step(function() {
         assert_true(cancelled);
         assert_equals(readCounts, 1);
         test7.done();
-    }), 50);
+    }), standardTimeout);
 });
 
 var test8 = async_test('Getting a second reader after erroring the stream should succeed');

@@ -2,6 +2,8 @@ require('../resources/testharness');
 
 require('./utils/streams-utils');
 
+var standardTimeout = 100;
+
 test(function() {
     new ReadableStream(); // ReadableStream constructed with no parameters.
     new ReadableStream({ }); // ReadableStream constructed with an empty object as parameter.
@@ -157,7 +159,7 @@ test1.step(function()
                     c.enqueue('a');
                     c.close();
                     resolve();
-                }), 50);
+                }), standardTimeout);
             }));
         },
     });
@@ -184,7 +186,7 @@ test2.step(function()
             return new Promise(test2.step_func(function(resolve, reject) {
                 setTimeout(test2.step_func(function() {
                     reject(theError);
-                }), 50);
+                }), standardTimeout);
             }));
         },
     });
@@ -287,7 +289,7 @@ test5.step(function() {
     setTimeout(test5.step_func(function() {
         assert_equals(pullCount, 1, 'pull should be called exactly once');
         test5.done();
-    }), 50);
+    }), standardTimeout);
 });
 
 var test6 = async_test('ReadableStream: should only call pull once for a forever-empty stream, even after reading');
@@ -312,7 +314,7 @@ test6.step(function() {
     setTimeout(test6.step_func(function() {
         assert_equals(pullCount, 1, 'pull should be called exactly once');
         test6.done();
-    }), 50);
+    }), standardTimeout);
 });
 
 var test7 = async_test('ReadableStream: should only call pull once on a non-empty stream read from before start fulfills');
@@ -343,7 +345,7 @@ test7.step(function() {
     setTimeout(test7.step_func(function() {
         assert_equals(pullCount, 1, 'pull should be called exactly once');
         test7.done();
-    }), 50);
+    }), standardTimeout);
 });
 
 var test8 = async_test('ReadableStream: should only call pull twice on a non-empty stream read from after start fulfills');
@@ -374,7 +376,7 @@ test8.step(function() {
     setTimeout(test8.step_func(function() {
         assert_equals(pullCount, 2, 'pull should be called exactly twice')
         test8.done();
-    }), 50);
+    }), standardTimeout);
 });
 
 var test9 = async_test('ReadableStream: should call pull in reaction to read()ing the last chunk, if not draining');
@@ -415,7 +417,7 @@ test9.step(function() {
     setTimeout(test9.step_func(function() {
         assert_equals(pullCount, 3, 'pull should be called exactly thrice')
         test9.done();
-    }), 50);
+    }), standardTimeout);
 });
 
 var test10 = async_test('ReadableStream: should not call pull() in reaction to read()ing the last chunk, if draining');
@@ -458,7 +460,7 @@ test10.step(function() {
     setTimeout(test10.step_func(function() {
         assert_equals(pullCount, 2, 'pull should be called exactly twice')
         test10.done();
-    }), 50);
+    }), standardTimeout);
 });
 
 var test11 = async_test('ReadableStream: should not call pull until the previous pull call\'s promise fulfills');
@@ -494,7 +496,7 @@ test11.step(function() {
                     assert_equals(timesCalled, 2, 'after the promise returned by pull is fulfilled, pull should be called a second time');
                     test11.done();
                 }));
-            }), 30);
+            }), standardTimeout);
         }))
     })).catch(test11.step_func(function(e) {
         assert_unreached(e)
@@ -540,7 +542,7 @@ test12.step(function() {
                         // Once for after start, and once for every read.
                         assert_equals(timesCalled, 4, 'pull() should be called exactly four times');
                         test12.done();
-                    }), 50);
+                    }), standardTimeout);
                 }));
             }));
         }));

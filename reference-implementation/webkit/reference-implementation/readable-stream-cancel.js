@@ -2,6 +2,8 @@ require('../resources/testharness');
 
 require('./utils/streams-utils');
 
+var standardTimeout = 100;
+
 var test1 = async_test('ReadableStream cancellation: integration test on an infinite stream derived from a random push source');
 test1.step(function() {
     var randomSource = new RandomPushSource();
@@ -26,7 +28,7 @@ test1.step(function() {
                 setTimeout(test1.step_func(function() {
                     cancellationFinished = true;
                     resolve();
-                }), 50)
+                }), standardTimeout);
             }));
         }
     });
@@ -45,7 +47,7 @@ test1.step(function() {
             assert_equals(cancellationFinished, true, 'it returns a promise that is fulfilled when the cancellation finishes');
             test1.done();
         })).catch(test1.step_func(function(e) { assert_unreached(e); }));
-    }), 150);
+    }), standardTimeout + 50);
 });
 
 test(function() {
@@ -153,7 +155,7 @@ test5.step(function() {
 
     setTimeout(test5.step_func(function() {
         resolveSourceCancelPromise('Hello');
-    }), 30);
+    }), standardTimeout);
 });
 
 var test6 = async_test('ReadableStream cancellation: should reject promise when cancel callback raises an exception');
@@ -191,7 +193,7 @@ test7.step(function()
             return new Promise(test7.step_func(function(resolve, reject) {
                 setTimeout(test7.step_func(function() {
                     resolve();
-                }), 50);
+                }), standardTimeout);
             }))
         }
     })
@@ -235,7 +237,7 @@ test8.step(function() {
 
     setTimeout(test8.step_func(function() {
         rejectSourceCancelPromise(errorInCancel);
-    }), 30);
+    }), standardTimeout);
 });
 
 var test9 = async_test('ReadableStream cancellation: cancelling before start finishes should prevent pull() from being called');
