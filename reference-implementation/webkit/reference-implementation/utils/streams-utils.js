@@ -162,7 +162,7 @@ function sequentialReadableStream(limit, options) {
             return new Promise(function(resolve, reject) {
                 sequentialSource.read(function(err, done, chunk) {
                     if (err) {
-                        error(err);
+                        reject(err);
                     } else if (done) {
                         sequentialSource.close(function(err) {
                             if (err) {
