@@ -30,24 +30,23 @@ RandomPushSource.prototype = {
             this.paused = false;
         }
 
-        var stream = this;
+        var source = this;
         function writeChunk() {
-            if (stream.paused) {
+            if (source.paused) {
                 return;
             }
 
-            stream.pushed++;
+            source.pushed++;
 
-            if (stream.toPush > 0 && stream.pushed > stream.toPush) {
-                if (stream._intervalHandle) {
-                    clearInterval(stream._intervalHandle);
-                    stream._intervalHandle = undefined;
+            if (source.toPush > 0 && source.pushed > source.toPush) {
+                if (source._intervalHandle) {
+                    clearInterval(source._intervalHandle);
+                    source._intervalHandle = undefined;
                 }
-                stream.closed = true;
-                stream.onend();
-            }
-            else {
-                stream.ondata(randomChunk(128));
+                source.closed = true;
+                source.onend();
+            } else {
+                source.ondata(randomChunk(128));
             }
         }
     },
