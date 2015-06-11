@@ -1,8 +1,11 @@
+import gc from '../../test/utils/gc';
+
+var window = {};
+window.gc = gc;
+
 require('../resources/testharness');
 
 require('./utils/streams-utils');
-
-var standardTimeout = 100;
 
 var ReadableStreamReader;
 
@@ -85,7 +88,7 @@ test(function() {
     var rs = new ReadableStream();
     rs.getReader(); // getReader() should be fine.
     assert_throws(new TypeError(), function() { rs.getReader(); }, 'getReader() should fail');
-}, 'Getting a ReadableStreamReader via getReader should fail if the stream is already locked (via direct getReader)');
+}, 'Getting a ReadableStreamReader via getReader should fail if the stream is already locked (via getReader)');
 
 test(function() {
     var rs = new ReadableStream({
@@ -147,7 +150,7 @@ test2.step(function() {
         test2.step_func(function(e) { assert_unreached('reader.cancel() should not reject'); }));
 });
 
-var test3 = async_test('closed should be fulfilled after stream is closed (.closed access before acquiring)', { timeout: 50 });
+var test3 = async_test('closed should be fulfilled after stream is closed (.closed access before acquiring)');
 test3.step(function() {
     var controller;
     var rs = new ReadableStream({
@@ -212,14 +215,10 @@ test5.step(function() {
     var reader2 = rs.getReader();
     reader2.read().then(test5.step_func(function(r) {
         assert_object_equals(r, { value: 'b', done: false }, 'reading the second chunk from reader2 works');
-        ++readCount;
+        assert_equals(++readCount, 2);
+        test5.done();
     }));
     reader2.releaseLock();
-
-    setTimeout(test5.step_func(function() {
-        assert_equals(readCount, 2);
-        test5.done();
-    }), standardTimeout);
 });
 
 var test6 = async_test('Cannot use an already-released reader to unlock a stream again');
@@ -244,7 +243,6 @@ test6.step(function() {
 
 var test7 = async_test('cancel() on a released reader is a no-op and does not pass through');
 test7.step(function() {
-    var readCounts = 0;
     var cancelled = false;
     var rs = new ReadableStream({
         start: function(c) {
@@ -265,14 +263,9 @@ test7.step(function() {
     var reader2 = rs.getReader();
     reader2.read().then(test7.step_func(function(r) {
         assert_object_equals(r, { value: 'a', done: false }, 'a new reader should be able to read a chunk');
-        ++readCounts;
-    }));
-
-    setTimeout(test7.step_func(function() {
         assert_true(cancelled);
-        assert_equals(readCounts, 1);
         test7.done();
-    }), standardTimeout);
+    }));
 });
 
 var test8 = async_test('Getting a second reader after erroring the stream should succeed');
@@ -313,3 +306,12 @@ test8.step(function() {
         test8.done();
     }));
 });
+
+test(function() {
+    var rs = new ReadableStream({});
+
+    rs.getReader();
+    window.gc();
+
+    assert_throws(new TypeError(), function() { rs.getReader(); }, 'old reader should still be locking the stream even after garbage collection');
+}, 'Garbage-collecting a ReadableStreamReader should not unlock its stream');
