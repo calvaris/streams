@@ -185,6 +185,18 @@ function sequentialReadableStream(limit, options) {
     return stream;
 };
 
+function typeIsObject(x) {
+    return (typeof x === 'object' && x !== null) || typeof x === 'function';
+}
+
+function createDataProperty(o, p, v) {
+    if (!typeIsObject(o)) {
+        throw new TypeError('Parameter must be an object.');
+        return
+    }
+    Object.defineProperty(o, p, { value: v, writable: true, enumerable: true, configurable: true });
+}
+
 function expose(object, name)
 {
     var components = name.split(".");
@@ -201,5 +213,7 @@ function expose(object, name)
 expose(RandomPushSource, 'RandomPushSource');
 expose(readableStreamToArray, 'readableStreamToArray');
 expose(sequentialReadableStream, 'sequentialReadableStream');
+expose(sequentialReadableStream, 'typeIsObject');
+expose(sequentialReadableStream, 'createDataProperty');
 
 })();
