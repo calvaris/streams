@@ -71,7 +71,7 @@ function templatedRSErrored(label, factory, error) {
     test(function() {
     }, 'Running templatedRSErrored with ' + label);
 
-    var test1 = async_test('getReader() should return a reader that acts errored');
+    var test1 = async_test('getReader() should return a reader that acts errored', { timeout: 50 });
     test1.step(function() {
         var rs = factory();
         var promisesCount = 0;
@@ -187,7 +187,7 @@ function templatedRSEmptyReader(label, factory) {
             test1.step_func(function() { assert_unreached('read() should not reject'); })
         );
 
-        setTimeout(test1.step_func(function() { test1.done(); }), 100);
+        setTimeout(test1.step_func(function() { test1.done(); }), 1000);
     });
 
     var test2 = async_test('two read()s should both never settle');
@@ -204,7 +204,7 @@ function templatedRSEmptyReader(label, factory) {
             test2.step_func(function() { assert_unreached('second read() should not reject'); })
         );
 
-        setTimeout(test2.step_func(function() { test2.done(); }), 100);
+        setTimeout(test2.step_func(function() { test2.done(); }), 1000);
     });
 
     test(function() {
@@ -240,7 +240,7 @@ function templatedRSEmptyReader(label, factory) {
 
         assert_throws(new TypeError(), test3.step_func(function() { reader.releaseLock(); }, 'releaseLock should throw a TypeError'));
 
-        setTimeout(test3.step_func(function() { test3.done(); }), 50);
+        setTimeout(test3.step_func(function() { test3.done(); }), 1000);
     });
 
     var test4 = async_test('releasing the lock should cause further read() calls to resolve as if the stream is closed');
@@ -370,7 +370,7 @@ function templatedRSErroredReader(label, factory, error) {
     test(function() {
     }, 'Running templatedRSErroredReader with ' + label);
 
-    var test1 = async_test('closed should reject with the error');
+    var test1 = async_test('closed should reject with the error', { timeout: 50 });
     test1.step(function() {
         var { reader } = factory();
 
@@ -383,7 +383,7 @@ function templatedRSErroredReader(label, factory, error) {
         );
     });
 
-    var test2 = async_test('read() should reject with the error');
+    var test2 = async_test('read() should reject with the error', { timeout: 50 });
     test2.step(function() {
         var { reader } = factory();
 

@@ -26,7 +26,7 @@ test1.step(function() {
                 setTimeout(test1.step_func(function() {
                     cancellationFinished = true;
                     resolve();
-                }), 50);
+                }), 500);
             }));
         }
     });
@@ -45,7 +45,7 @@ test1.step(function() {
             assert_equals(cancellationFinished, true, 'it returns a promise that is fulfilled when the cancellation finishes');
             test1.done();
         })).catch(test1.step_func(function(e) { assert_unreached(e); }));
-    }), 150);
+    }), 1000);
 });
 
 test(function() {
@@ -162,7 +162,7 @@ test6.step(function()
             return new Promise(test6.step_func(function(resolve, reject) {
                 setTimeout(test6.step_func(function() {
                     resolve();
-                }), 50);
+                }), 500);
             }))
         }
     })
@@ -206,7 +206,7 @@ test7.step(function() {
 
     setTimeout(test7.step_func(function() {
         resolveSourceCancelPromise('Hello');
-    }), 30);
+    }), 500);
 });
 
 var test8 = async_test('ReadableStream cancellation: if the underlying source\'s cancel method returns a promise, the promise returned by the stream\'s cancel should reject when that one does');
@@ -240,7 +240,7 @@ test8.step(function() {
 
     setTimeout(test8.step_func(function() {
         rejectSourceCancelPromise(errorInCancel);
-    }), 30);
+    }), 500);
 });
 
 var test9 = async_test('ReadableStream cancellation: cancelling before start finishes should prevent pull() from being called');
