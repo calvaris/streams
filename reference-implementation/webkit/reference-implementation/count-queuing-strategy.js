@@ -230,3 +230,118 @@ test3.step(function() {
         test3.done();
     })).catch(test3.step_func(function(e) { assert_unreached(e); } ));
 });
+
+test(function() {
+    new WritableStream({}, new CountQueuingStrategy({ highWaterMark: 4 })); // Does not throw.
+}, 'Can construct a writable stream with a valid CountQueuingStrategy');
+
+var test4 = async_test('Correctly governs the value of a WritableStream\'s state property (HWM = 0)');
+test4.step(function() {
+    var dones = Object.create(null);
+
+    var ws = new WritableStream(
+        {
+            write: function(chunk) {
+                return new Promise(test4.step_func(function(resolve) { dones[chunk] = resolve; }));
+            }
+        },
+        new CountQueuingStrategy({ highWaterMark: 0 })
+    );
+
+    setTimeout(test4.step_func(function() {
+        assert_equals(ws.state, 'writable', 'After 0 writes, 0 of which finished, state should be \'writable\'');
+
+        var writePromiseA = ws.write('a');
+        assert_equals(ws.state, 'waiting', 'After 1 write, 0 of which finished, state should be \'waiting\'');
+
+        var writePromiseB = ws.write('b');
+        assert_equals(ws.state, 'waiting', 'After 2 writes, 0 of which finished, state should be \'waiting\'');
+
+        dones.a();
+        writePromiseA.then(test4.step_func(function() {
+            assert_equals(ws.state, 'waiting', 'After 2 writes, 1 of which finished, state should be \'waiting\'');
+
+            dones.b();
+            return writePromiseB.then(test4.step_func(function() {
+                assert_equals(ws.state, 'writable', 'After 2 writes, 2 of which finished, state should be \'writable\'');
+
+                var writePromiseC = ws.write('c');
+                assert_equals(ws.state, 'waiting', 'After 3 writes, 2 of which finished, state should be \'waiting\'');
+
+                dones.c();
+                return writePromiseC.then(test4.step_func(function() {
+                    assert_equals(ws.state, 'writable', 'After 3 writes, 3 of which finished, state should be \'writable\'');
+
+                    test4.done();
+                }));
+            }));
+        })).catch(test4.step_func(function(e) { assert_unreached("uncaught error " + e); }));
+    }), 0);
+});
+
+var test5 = async_test('Correctly governs the value of a WritableStream\'s state property (HWM = 4)');
+test5.step(function() {
+    var dones = Object.create(null);
+
+    var ws = new WritableStream(
+        {
+            write: function(chunk) {
+                return new Promise(test5.step_func(function(resolve) { dones[chunk] = resolve; }));
+            }
+        },
+        new CountQueuingStrategy({ highWaterMark: 4 })
+    );
+
+    setTimeout(test5.step_func(function() {
+        assert_equals(ws.state, 'writable', 'After 0 writes, 0 of which finished, state should be \'writable\'');
+
+        var writePromiseA = ws.write('a');
+        assert_equals(ws.state, 'writable', 'After 1 write, 0 of which finished, state should be \'writable\'');
+
+        var writePromiseB = ws.write('b');
+        assert_equals(ws.state, 'writable', 'After 2 writes, 0 of which finished, state should be \'writable\'');
+
+        var writePromiseC = ws.write('c');
+        assert_equals(ws.state, 'writable', 'After 3 writes, 0 of which finished, state should be \'writable\'');
+
+        var writePromiseD = ws.write('d');
+        assert_equals(ws.state, 'writable', 'After 4 writes, 0 of which finished, state should be \'writable\'');
+
+        ws.write('e');
+        assert_equals(ws.state, 'waiting', 'After 5 writes, 0 of which finished, state should be \'waiting\'');
+
+        ws.write('f');
+        assert_equals(ws.state, 'waiting', 'After 6 writes, 0 of which finished, state should be \'waiting\'');
+
+        ws.write('g');
+        assert_equals(ws.state, 'waiting', 'After 7 writes, 0 of which finished, state should be \'waiting\'');
+
+        dones.a();
+        writePromiseA.then(test5.step_func(function() {
+            assert_equals(ws.state, 'waiting', 'After 7 writes, 1 of which finished, state should be \'waiting\'');
+
+            dones.b();
+            return writePromiseB.then(test5.step_func(function() {
+                assert_equals(ws.state, 'waiting', 'After 7 writes, 2 of which finished, state should be \'waiting\'');
+
+                dones.c();
+                return writePromiseC.then(test5.step_func(function() {
+                    assert_equals(ws.state, 'writable', 'After 7 writes, 3 of which finished, state should be \'writable\'');
+
+                    ws.write('h');
+                    assert_equals(ws.state, 'waiting', 'After 8 writes, 3 of which finished, state should be \'waiting\'');
+
+                    dones.d();
+                    return writePromiseD.then(test5.step_func(function() {
+                        assert_equals(ws.state, 'writable', 'After 8 writes, 4 of which finished, state should be \'writable\'');
+
+                        ws.write('i');
+                        assert_equals(ws.state, 'waiting', 'After 9 writes, 4 of which finished, state should be \'waiting\'');
+
+                        test5.done();
+                    }));
+                }));
+            }));
+        })).catch(test5.step_func(function(e) { assert_unreached("uncaught error " + e); }));
+    }), 0);
+});
