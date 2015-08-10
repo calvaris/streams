@@ -63,3 +63,28 @@ test(function() {
                          'highWaterMark property should be a data property with the value passed the connstructor');
     assert_equals(typeof strategy.size, 'function');
 }, 'ByteLengthQueuingStrategy instances have the correct properties');
+
+var test1 = async_test('Closing a writable stream with in-flight writes below the high water mark delays the close call properly');
+test1.step(function() {
+    var isDone = false;
+    var ws = new WritableStream(
+        {
+            write: function(chunk) {
+                return new Promise(test1.step_func(function(resolve) {
+                    setTimeout(test1.step_func(function() {
+                        isDone = true;
+                        resolve();
+                    }), 500);
+                }));
+            },
+            close: function() {
+                assert_true(isDone, 'close is only called once the promise has been resolved');
+                test1.done();
+            }
+        },
+        new ByteLengthQueuingStrategy({ highWaterMark: 1024 * 16 })
+    );
+
+    ws.write({ byteLength: 1024 });
+    ws.close();
+});
