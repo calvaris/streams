@@ -15,18 +15,15 @@ test1.step(function() {
 
     reader.read().then(test1.step_func(function(result) {
         assert_object_equals(result, { value: undefined, done: true }, 'read() should fulfill with close');
-        assert_equals(counter, 1);
-        counter++;
+        assert_equals(++counter, 1);
     }));
     reader.read().then(test1.step_func(function(result) {
         assert_object_equals(result, { value: undefined, done: true }, 'read() should fulfill with close');
-        assert_equals(counter, 2);
-        counter++;
-        test1.done();
+        assert_equals(++counter, 2);
     }));
     reader.closed.then(test1.step_func(function() {
-        assert_equals(counter, 0);
-        counter++;
+        assert_equals(++counter, 3);
+        test1.done();
     }));
 
     controller.close();
