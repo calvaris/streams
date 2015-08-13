@@ -768,17 +768,17 @@ test19.step(function() {
     }));
 });
 
-// var test20 = async_test('ReadableStream integration test: adapting an async pull source');
-// test20.step(function() {
-//     var rs = sequentialReadableStream(10, { async: true });
+var test20 = async_test('ReadableStream integration test: adapting an async pull source');
+test20.step(function() {
+    var rs = sequentialReadableStream(10, { async: true });
 
-//     readableStreamToArray(rs).then(test20.step_func(function(chunks) {
-//         assert_true(rs.source.closed, 'source should be closed after all chunks are read');
-//         assert_array_equals(chunks, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 'the expected 10 chunks should be read');
+    readableStreamToArray(rs).then(test20.step_func(function(chunks) {
+        assert_true(rs.source.closed, 'source should be closed after all chunks are read');
+        assert_array_equals(chunks, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 'the expected 10 chunks should be read');
 
-//         test20.done();
-//     }));
-// });
+        test20.done();
+    }));
+});
 
 function garbageCollectAndDo(task)
 {
