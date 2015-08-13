@@ -122,7 +122,6 @@ test4.step(function() {
     }), test4.step_func(function(err) {
         assert_equals(myError, err);
         assert_equals(++counter, 2);
-        test4.done();
     }));
     reader.closed.then(test4.step_func(function() {
         assert_unreached('read() should reject on an errored stream');
