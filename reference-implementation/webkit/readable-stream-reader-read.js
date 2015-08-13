@@ -134,23 +134,4 @@ test4.step(function() {
 
     var myError = { potato: 'mashed' };
     controller.error(myError);
- });
-
-var test5 = async_test('Reading within a read promise resolve callback on a stream that gets closed');
-test5.step(function() {
-    var controller;
-    var rs = new ReadableStream({
-        start: function(c) {
-            controller = c;
-        }
-    });
-
-    var reader = rs.getReader();
-
-    reader.read().then(test5.step_func(function() {
-        reader.read().then(test5.step_func(function() {
-            test5.done();
-        }));
-    }));
-    controller.close();
 });

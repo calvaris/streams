@@ -43,22 +43,3 @@ test2.step(function() {
         test2.done();
     }));
 });
-
-var test3 = async_test('Erroring a ReadableStream without any value');
-test3.step(function() {
-    var controller;
-    var rs = new ReadableStream({
-        start: function(c) {
-            controller = c;
-        }
-    });
-
-    rs.getReader().closed.then(test3.step_func(function() {
-        assert_unreached("closed promise should not be resolved when stream is errored");
-    }), test3.step_func(function(err) {
-        assert_equals(err, undefined);
-        test3.done();
-    }));
-
-    controller.error();
-});
