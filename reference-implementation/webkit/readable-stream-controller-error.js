@@ -2,7 +2,7 @@ require('./resources/testharness');
 
 require('./reference-implementation/utils/streams-utils');
 
-var test1 = async_test('Erroring a ReadableStream should reject ReadableStreamReader close promise');
+var test1 = async_test('Erroring a ReadableStream after checking closed should reject ReadableStreamReader closed promise');
 test1.step(function() {
     var controller;
     var rs = new ReadableStream({
@@ -22,7 +22,7 @@ test1.step(function() {
     controller.error(rsError);
 });
 
-var test2 = async_test('Erroring a ReadableStream should reject ReadableStreamReader close promise');
+var test2 = async_test('Erroring a ReadableStream before checking closed should reject ReadableStreamReader closed promise');
 test2.step(function() {
     var controller;
     var rs = new ReadableStream({
