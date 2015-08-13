@@ -71,7 +71,7 @@ function templatedRSErrored(label, factory, error) {
     test(function() {
     }, 'Running templatedRSErrored with ' + label);
 
-    var test1 = async_test('getReader() should return a reader that acts errored', { timeout: 50 });
+    var test1 = async_test('getReader() should return a reader that acts errored');
     test1.step(function() {
         var rs = factory();
         var promisesCount = 0;
@@ -439,7 +439,7 @@ function templatedRSErroredReader(label, factory, error) {
     test(function() {
     }, 'Running templatedRSErroredReader with ' + label);
 
-    var test1 = async_test('closed should reject with the error', { timeout: 50 });
+    var test1 = async_test('closed should reject with the error');
     test1.step(function() {
         var { reader } = factory();
 
@@ -452,7 +452,7 @@ function templatedRSErroredReader(label, factory, error) {
         );
     });
 
-    var test2 = async_test('read() should reject with the error', { timeout: 50 });
+    var test2 = async_test('read() should reject with the error');
     test2.step(function() {
         var { reader } = factory();
 
