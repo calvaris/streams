@@ -133,4 +133,18 @@ test4.step(function() {
 
     var myError = { potato: 'mashed' };
     controller.error(myError);
+ });
+
+var test5 = async_test('ReadableStream: if start rejects with no parameter, it should error the stream with an undefined error');
+test5.step(function() {
+    var rs = new ReadableStream({
+        start: function(c) {
+            return Promise.reject();
+        }
+    });
+
+    rs.getReader().read().catch(test5.step_func(function(e) {
+        assert_equals(typeof e, "undefined");
+        test5.done();
+    }));
 });

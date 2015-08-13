@@ -159,7 +159,7 @@ test4.step(function() {
         assert_array_equals(chunks, [], 'branch1 should have no chunks');
         branch1Read = true;
     }));
-                                                       
+
     readableStreamToArray(branch2).then(test4.step_func(function(chunks) {
         assert_array_equals(chunks, ['a', 'b'], 'branch2 should have two chunks');
         assert_true(branch1Read);
@@ -215,7 +215,7 @@ test6.step(function() {
 
 var test7 = async_test('ReadableStream teeing: failing to cancel the original stream should cause cancel() to reject on branches');
 test7.step(function() {
-    var cancel1Rejected = false;
+    var cancelRejected = false;
     var theError = new Error('I\'ll be careful.');
     var rs = new ReadableStream({
         cancel: function() {
@@ -228,11 +228,11 @@ test7.step(function() {
     var branch2 = branch[1];
     branch1.cancel().catch(test7.step_func(function(e) {
         assert_equals(e, theError, 'branch1.cancel() should reject with the error');
-        cancel1Rejected = true;
+        cancelRejected = true;
     }));
     branch2.cancel().catch(test7.step_func(function(e) {
         assert_equals(e, theError, 'branch2.cancel() should reject with the error');
-        assert_true(cancel1Rejected);
+        assert_true(cancelRejected);
         test7.done();
     }));
 });
