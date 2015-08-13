@@ -2,6 +2,10 @@ require('../resources/testharness');
 
 require('./utils/streams-utils');
 
+require('../resources/gc');
+var window = {}
+window.gc = gc;
+
 test(function() {
     new ReadableStream(); // ReadableStream constructed with no parameters.
     new ReadableStream({ }); // ReadableStream constructed with an empty object as parameter.
@@ -775,3 +779,64 @@ test19.step(function() {
 //         test20.done();
 //     }));
 // });
+
+function garbageCollectAndDo(task)
+{
+    var timeout = 50;
+    if (window.GCController)
+        window.GCController.collect();
+    else if (window.gc)
+        window.gc();
+    else
+        timeout = 400;
+    setTimeout(task, timeout);
+}
+
+var test21 = async_test('ReadableStreamController methods should continue working properly when scripts lose their reference to the readable stream');
+test21.step(function() {
+    var controller;
+    new ReadableStream({
+        start: function(c) {
+            controller = c;
+        }
+    });
+
+    garbageCollectAndDo(test21.step_func(function() {
+        controller.close();
+        assert_throws(new TypeError(), function() { controller.close(); }, 'close should throw a TypeError the second time');
+        assert_throws(new TypeError(), function() { controller.error(); }), 'error should throw a TypeError on a closed stream';
+        test21.done();
+    }));
+});
+
+var test22 = async_test('ReadableStream closed promise should fulfill even if the stream and reader JS references are lost');
+test22.step(function() {
+    var controller;
+    new ReadableStream({
+        start: function(c) {
+            controller = c;
+        }
+    }).getReader().closed.then(test22.step_func(function() {
+        test22.done('closed promise should be fulfilled');
+    }));
+
+    garbageCollectAndDo(test22.step_func(function() {
+        controller.close();
+    }));
+});
+
+var test23 = async_test('ReadableStream closed promise should reject even if stream and reader JS references are lost');
+test23.step(function() {
+    var controller;
+    new ReadableStream({
+        start: function(c) {
+            controller = c;
+        }
+    }).getReader().closed.catch(test23.step_func(function() {
+        test23.done('closed promise should be rejected');
+    }));
+
+    garbageCollectAndDo(test23.step_func(function() {
+        controller.error();
+    }));
+});
