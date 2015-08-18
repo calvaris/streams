@@ -134,44 +134,78 @@ function templatedRSErrored(label, factory, error) {
     test(function() {
     }, 'Running templatedRSErrored with ' + label);
 
-    var test1 = async_test('getReader() should return a reader that acts errored');
+    var test1 = async_test('piping to a WritableStream in the writable state should abort the writable stream');
     test1.step(function() {
+        var rs = factory();
+
+        var startPromise = Promise.resolve();
+        var ws = new WritableStream({
+            start: function() {
+                return startPromise;
+            },
+            write: function() {
+                assert_unreached('Unexpected write call');
+            },
+            close: function() {
+                assert_reached('Unexpected close call');
+            },
+            abort: function(reason) {
+                assert_equals(reason, error);
+            }
+        });
+
+        startPromise.then(test1.step_func(function() {
+            assert_equals(ws.state, 'writable');
+
+            rs.pipeTo(ws).then(
+                test1.step_func(function() { assert_unreached('pipeTo promise should not be fulfilled'); }),
+                test1.step_func(function(e) {
+                    assert_equals(e, error, 'pipeTo promise should be rejected with the passed error');
+                    assert_equals(ws.state, 'errored', 'writable stream should become errored');
+                    test1.done();
+                })
+            );
+        }));
+    });
+
+    var test2 = async_test('getReader() should return a reader that acts errored');
+    test2.step(function() {
         var rs = factory();
         var promisesCount = 0;
 
         var reader = rs.getReader();
 
-        reader.closed.catch(test1.step_func(function(e) {
+        reader.closed.catch(test2.step_func(function(e) {
             assert_equals(e, error, 'reader.closed should reject with the error');
             if (++promisesCount === 2)
-                test1.done();
+                test2.done();
         }));
-        reader.read().catch(test1.step_func(function(e) {
+        reader.read().catch(test2.step_func(function(e) {
             assert_equals(e, error, 'reader.read() should reject with the error');
             if (++promisesCount === 2)
-                test1.done();
+                test2.done();
         }));
     });
 
-    var test2 = async_test('read() twice should give the error each time');
-    test2.step(function() {
+    var test3 = async_test('read() twice should give the error each time');
+    test3.step(function() {
         var rs = factory();
         var promiseCount = 0;
 
         var reader = rs.getReader();
 
-        reader.read().catch(test2.step_func(function(e) {
+        reader.read().catch(test3.step_func(function(e) {
             assert_equals(e, error, 'reader.read() should reject with the error');
             assert_equals(++promiseCount, 1);
         }));
-        reader.read().catch(test2.step_func(function(e) {
+        reader.read().catch(test3.step_func(function(e) {
             assert_equals(e, error, 'reader.read() should reject with the error');
             assert_equals(++promiseCount, 2);
         }));
-        reader.closed.catch(test2.step_func(function(e) {
+        reader.closed.catch(test3.step_func(function(e) {
             assert_equals(e, error, 'reader.closed should reject with the error');
             assert_equals(++promiseCount, 3);
-            test2.done();
+            test3.done();
         }));
    });
 
