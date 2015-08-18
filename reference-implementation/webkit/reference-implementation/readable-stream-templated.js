@@ -369,6 +369,164 @@ function templatedRSErroredSyncOnly(label, factory, error) {
     }, 'should be able to acquire multiple readers, since they are all auto-released');
 };
 
+function templatedRSTwoChunksClosed(label, factory, error) {
+    test(function() {
+    }, 'Running templatedRSTwoChunksClosed with ' + label);
+
+    var test1 = async_test('piping with no options and no destination errors');
+    test1.step(function() {
+        var rs = factory();
+
+        var chunksWritten = [];
+        var ws = new WritableStream({
+            abort: function() {
+                assert_unreached('unexpected abort call');
+            },
+            write: function(chunk) {
+                chunksWritten.push(chunk);
+            }
+        });
+
+        rs.pipeTo(ws).then(test1.step_func(function() {
+            assert_equals(ws.state, 'closed', 'destination should be closed');
+            assert_array_equals(chunksWritten, chunks);
+            test1.done();
+        }));
+    });
+
+    var test2 = async_test('piping with { preventClose: false } and no destination errors');
+    test2.step(function() {
+        var rs = factory();
+
+        var chunksWritten = [];
+        var ws = new WritableStream({
+            abort: function() {
+                assert_unreached('unexpected abort call');
+            },
+            write: function(chunk) {
+                chunksWritten.push(chunk);
+            }
+        });
+
+        rs.pipeTo(ws).then(test2.step_func(function() {
+            assert_equals(ws.state, 'closed', 'destination should be closed');
+            assert_array_equals(chunksWritten, chunks);
+            test2.done();
+        }));
+    });
+
+    var test3 = async_test('piping with { preventClose: true } and no destination errors');
+    test3.step(function() {
+        var rs = factory();
+
+        var chunksWritten = [];
+        var ws = new WritableStream({
+            close: function() {
+                assert_unreached('unexpected close call');
+            },
+            abort: function() {
+                assert_unreached('unexpected abort call');
+            },
+            write: function(chunk) {
+                chunksWritten.push(chunk);
+            }
+        });
+
+        rs.pipeTo(ws, { preventClose: true }).then(test3.step_func(function() {
+            assert_equals(ws.state, 'writable', 'destination should be writable');
+            assert_array_equals(chunksWritten, chunks);
+            test3.done();
+        }));
+    });
+
+    var test4 = async_test('piping with { preventClose: false } and a destination with that errors synchronously');
+    test4.step(function() {
+        var rs = factory();
+
+        var theError = new Error('!!!');
+        var ws = new WritableStream({
+            close: function() {
+                assert_unreached('unexpected close call');
+            },
+            abort: function() {
+                assert_unreached('unexpected abort call');
+            },
+            write: function() {
+                throw theError;
+            }
+        });
+
+        rs.pipeTo(ws, { preventClose: false }).then(
+            test4.step_func(function() { assert_unreached('pipeTo promise should not fulfill'); }),
+            test4.step_func(function(e) {
+                assert_equals(e, theError, 'pipeTo promise should reject with the write error');
+                test4.done();
+            })
+        );
+    });
+
+    var test5 = async_test('piping with { preventClose: true } and a destination with that errors synchronously');
+    test5.step(function() {
+        var rs = factory();
+
+        var theError = new Error('!!!');
+        var ws = new WritableStream({
+            close: function() {
+                assert_unreached('unexpected close call');
+            },
+            abort: function() {
+                assert_unreached('unexpected abort call');
+            },
+            write: function() {
+                throw theError;
+            }
+        });
+
+        rs.pipeTo(ws, { preventClose: true }).then(
+            test5.step_func(function() { assert_unreached('pipeTo promise should not fulfill'); }),
+            test5.step_func(function(e) {
+                assert_equals(e, theError, 'pipeTo promise should reject with the write error');
+                test5.done();
+            })
+        );
+    });
+
+    var test6 = async_test('piping with { preventClose: true } and a destination that errors on the last chunk');
+    test6.step(function() {
+        var rs = factory();
+
+        var theError = new Error('!!!');
+        var chunkCounter = 0;
+        var ws = new WritableStream(
+            {
+                close: function() {
+                    assert_unreached('unexpected close call');
+                },
+                abort: function() {
+                    assert_unreached('unexpected abort call');
+                },
+                write: function() {
+                    if (++chunkCounter === 2) {
+                        return new Promise(test6.step_func(function(r, reject) { setTimeout(test6.step_func(function() { reject(theError); }), 50); }));
+                    }
+                }
+            },
+            {
+                highWaterMark: Infinity,
+                size: function() { return 1; }
+            }
+        );
+
+        rs.pipeTo(ws, { preventClose: true }).then(
+            test6.step_func(function() { assert_unreached('pipeTo promise should not fulfill'); }),
+            test6.step_func(function(e) {
+                assert_equals(e, theError, 'pipeTo promise should reject with the write error');
+                test6.done();
+            })
+        );
+    });
+};
+
 function templatedRSEmptyReader(label, factory) {
     test(function() {
     }, 'Running templatedRSEmptyReader with ' + label);
@@ -960,6 +1118,44 @@ templatedRSTwoChunksOpenReader('ReadableStream (two chunks enqueued, still open)
         }
     }))},
     chunks
+);
+
+templatedRSTwoChunksClosed('ReadableStream (two chunks enqueued, then closed)', function() {
+    return new ReadableStream({
+        start: function(c) {
+            c.enqueue(chunks[0]);
+            c.enqueue(chunks[1]);
+            c.close();
+        }
+    })},
+    chunks
+);
+
+templatedRSTwoChunksClosed('ReadableStream (two chunks enqueued async, then closed)', function() {
+    return new ReadableStream({
+        start: function(c) {
+            setTimeout(function() { c.enqueue(chunks[0]); }, 10);
+            setTimeout(function() { c.enqueue(chunks[1]); }, 20);
+            setTimeout(function() { c.close(); }, 30);
+        }
+    })},
+    chunks
+);
+
+templatedRSTwoChunksClosed('ReadableStream (two chunks enqueued via pull, then closed)', function() {
+    var pullCall = 0;
+
+    return new ReadableStream({
+        pull:function(c) {
+            if (pullCall >= chunks.length) {
+                c.close();
+            } else {
+                c.enqueue(chunks[pullCall++]);
+            }
+        }
+    });
+},
+chunks
 );
 
 templatedRSTwoChunksClosedReader('ReadableStream (two chunks enqueued, then closed) reader', function() {
