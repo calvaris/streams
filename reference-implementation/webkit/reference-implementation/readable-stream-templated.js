@@ -216,6 +216,81 @@ function templatedRSErrored(label, factory, error) {
     }, 'locked should be false');
 };
 
+function templatedRSErroredAsyncOnly(label, factory, error) {
+    test(function() {
+    }, 'Running templatedRSErroredAsyncOnly with ' + label);
+
+    var test1 = async_test('piping with no options');
+    test1.step(function() {
+        var closeCalled = false;
+
+        var rs = factory();
+
+        var ws = new WritableStream({
+            abort: function(r) {
+                assert_equals(r, error, 'reason passed to abort should equal the source error');
+            }
+        });
+
+        rs.pipeTo(ws).catch(test1.step_func(function(e) {
+            assert_equals(ws.state, 'errored', 'destination should be errored');
+            assert_equals(e, error, 'rejection reason of pipeToPromise should be the source error');
+            assert_true(closeCalled);
+            test1.done();
+        }));
+
+        ws.closed.catch(test1.step_func(function(e) {
+            assert_equals(e, error, 'rejection reason of dest closed should be the source error');
+            closeCalled = true;
+        }))
+    });
+
+    var test2 = async_test('piping with { preventAbort: false }');
+    test2.step(function() {
+        var abortCalled = false;
+        var closeRejected = false;
+
+        var rs = factory();
+
+        var ws = new WritableStream({
+            abort: function(r) {
+                assert_equals(r, error, 'reason passed to abort should equal the source error');
+                abortCalled = true;
+            }
+        });
+
+        rs.pipeTo(ws, { preventAbort: false }).catch(test2.step_func(function(e) {
+            assert_equals(ws.state, 'errored', 'destination should be errored');
+            assert_equals(e, error, 'rejection reason of pipeToPromise should be the source error');
+            assert_true(abortCalled);
+            assert_true(closeRejected);
+            test2.done();
+        }));
+
+        ws.closed.catch(test2.step_func(function(e) {
+            assert_equals(e, error, 'rejection reason of dest closed should be the source error');
+            closeRejected = true;
+        }));
+    });
+
+    var test3 = async_test('piping with { preventAbort: true }');
+    test3.step(function() {
+        var rs = factory();
+
+        var ws = new WritableStream({
+            abort: function() {
+                assert_unreached('underlying sink abort should not be called');
+            }
+        });
+
+        rs.pipeTo(ws, { preventAbort: true }).catch(test3.step_func(function(e) {
+            assert_equals(ws.state, 'writable', 'destination should remain writable');
+            assert_equals(e, error, 'rejection reason of pipeToPromise should be the source error');
+            test3.done();
+        }));
+   });
+};
+
 function templatedRSErroredSyncOnly(label, factory, error) {
     test(function() {
     }, 'Running templatedRSErroredSyncOnly with ' + label);
@@ -833,6 +908,13 @@ templatedRSErrored('ReadableStream (errored via returning a rejected promise in 
         start: function() {
             return Promise.reject(theError);
         }
+    })},
+    theError
+);
+
+templatedRSErroredAsyncOnly('ReadableStream (errored via returning a rejected promise in start) reader', function() {
+    return new ReadableStream({
+        start: function() { return Promise.reject(theError); }
     })},
     theError
 );
