@@ -57,6 +57,69 @@ function templatedRSClosed(label, factory) {
         rs.getReader(); // getReader() should not throw.
     }, 'getReader() should be OK');
 
+    var test2 = async_test('piping to a WritableStream in the writable state should close the writable stream');
+    test2.step(function() {
+        var closeCalled = false;
+
+        var rs = factory();
+
+        var startPromise = Promise.resolve();
+        var ws = new WritableStream({
+            start: function() {
+                return startPromise;
+            },
+            write: function() {
+                assert_unreached('Unexpected write call');
+            },
+            close: function() {
+                closeCalled = true;
+            },
+            abort: function() {
+                assert_unreached('Unexpected abort call');
+            }
+        });
+
+        startPromise.then(test2.step_func(function() {
+            assert_equals(ws.state, 'writable', 'writable stream should start in writable state');
+
+            return rs.pipeTo(ws).then(test2.step_func(function() {
+                assert_true(closeCalled);
+                assert_equals(ws.state, 'closed', 'writable stream should become closed');
+                test2.done('underlying source close should be called');
+            }));
+        })).catch(test2.step_func(function(e) { assert_unreached(e); }));
+    });
+
+    var test3 = async_test('piping to a WritableStream in the writable state with { preventClose: true } should do nothing');
+    test3.step(function() {
+        var rs = factory();
+
+        var startPromise = Promise.resolve();
+        var ws = new WritableStream({
+            start: function() {
+                return startPromise;
+            },
+            write: function() {
+                assert_unreached('Unexpected write call');
+            },
+            close: function() {
+                assert_unreached('Unexpected close call');
+            },
+            abort: function() {
+                assert_unreached('Unexpected abort call');
+            }
+        });
+
+        startPromise.then(test3.step_func(function() {
+            assert_equals(ws.state, 'writable', 'writable stream should start in writable state');
+
+            return rs.pipeTo(ws, { preventClose: true }).then(test3.step_func(function() {
+                assert_equals(ws.state, 'writable', 'writable stream should still be writable');
+                test3.done('pipeTo promise should be fulfilled');
+            }));
+        })).catch(test3.step_func(function(e) { assert_unreached(e); }));
+    });
+
     test(function() {
         var rs = factory();
 
