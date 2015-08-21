@@ -16,7 +16,7 @@ test(function() {
 var test1 = async_test('ReadableStream teeing: should be able to read one branch to the end without affecting the other');
 test1.step(function() {
     var readCalls = 0;
-    const rs = new ReadableStream({
+    var rs = new ReadableStream({
         start: function(c) {
             c.enqueue('a');
             c.enqueue('b');
