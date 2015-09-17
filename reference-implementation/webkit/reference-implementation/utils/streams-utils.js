@@ -197,6 +197,30 @@ function createDataProperty(o, p, v) {
     Object.defineProperty(o, p, { value: v, writable: true, enumerable: true, configurable: true });
 }
 
+function duckTypedPassThroughTransform() {
+    var enqueueInReadable;
+    var closeReadable;
+
+    return {
+        writable: new WritableStream({
+            write: function(chunk) {
+                enqueueInReadable(chunk);
+            },
+
+            close: function() {
+                closeReadable();
+            }
+        }),
+
+        readable: new ReadableStream({
+            start: function(c) {
+                enqueueInReadable = c.enqueue.bind(c);
+                closeReadable = c.close.bind(c);
+            }
+        })
+    };
+}
+
 function expose(object, name)
 {
     var components = name.split(".");
@@ -215,5 +239,6 @@ expose(readableStreamToArray, 'readableStreamToArray');
 expose(sequentialReadableStream, 'sequentialReadableStream');
 expose(sequentialReadableStream, 'typeIsObject');
 expose(sequentialReadableStream, 'createDataProperty');
+expose(duckTypedPassThroughTransform, 'duckTypedPassThroughTransform');
 
 })();
