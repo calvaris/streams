@@ -2,6 +2,8 @@ require('../resources/testharness');
 
 require('./utils/streams-utils');
 
+// This is updated till ec5ffa0 of the spec.
+
 function templatedRSEmpty(label, factory) {
     test(function() {
     }, 'Running templatedRSEmpty with ' + label);
@@ -123,11 +125,23 @@ function templatedRSClosed(label, factory) {
     test(function() {
         var rs = factory();
 
+        var reader = rs.getReader();
+        reader.releaseLock();
+
+        reader = rs.getReader(); // Getting a second reader should not throw.
+        reader.releaseLock();
+
+        rs.getReader(); // Getting a third reader should not throw.
+    }, 'should be able to acquire multiple readers if they are released in succession');
+
+    test(function() {
+        var rs = factory();
+
         rs.getReader();
 
-        rs.getReader(); // Getting a second reader should not throw.
-        rs.getReader(); // Getting a third reader should not throw.
-    }, 'should be able to acquire multiple readers, since they are all auto-released');
+        assert_throws(new TypeError(), function() { rs.getReader(); }, 'getting a second reader should throw');
+        assert_throws(new TypeError(), function() { rs.getReader(); }, 'getting a third reader should throw');
+    }, 'should not be able to acquire a second reader if we don\'t release the first one');
 };
 
 function templatedRSErrored(label, factory, error) {
@@ -299,7 +313,7 @@ function templatedRSErroredSyncOnly(label, factory, error) {
     test1.step(function() {
         var rs = factory();
 
-        rs.getReader();
+        rs.getReader().releaseLock();
 
         var reader = rs.getReader(); // Calling getReader() twice does not throw (the stream is not locked).
 
@@ -311,6 +325,15 @@ function templatedRSErroredSyncOnly(label, factory, error) {
             })
         );
     });
+
+    test(function() {
+        var rs = factory();
+
+        rs.getReader();
+
+        assert_throws(new TypeError(), function() { rs.getReader(); }, 'getting a second reader should throw a TypeError');
+        assert_throws(new TypeError(), function() { rs.getReader(); }, 'getting a third reader should throw a TypeError');
+    }, 'should not be able to obtain additional readers if we don\'t release the first lock');
 
     var test2 = async_test('cancel() should return a distinct rejected promise each time');
     test2.step(function() {
@@ -358,15 +381,6 @@ function templatedRSErroredSyncOnly(label, factory, error) {
         assert_not_equals(cancelPromise1, cancelPromise2, 'cancel() calls should return distinct promises');
         allChecked = true;
     });
-
-    test(function() {
-        var rs = factory();
-
-        rs.getReader();
-
-        rs.getReader(); // Getting a second reader should not throw.
-        rs.getReader(); // Getting a third reader should not throw.
-    }, 'should be able to acquire multiple readers, since they are all auto-released');
 };
 
 function templatedRSTwoChunksClosed(label, factory, error) {
@@ -507,7 +521,7 @@ function templatedRSTwoChunksClosed(label, factory, error) {
                 },
                 write: function() {
                     if (++chunkCounter === 2) {
-                        return new Promise(test6.step_func(function(r, reject) { setTimeout(test6.step_func(function() { reject(theError); }), 50); }));
+                        return new Promise(test6.step_func(function(r, reject) { setTimeout(test6.step_func(function() { reject(theError); }), 200); }));
                     }
                 }
             },
@@ -591,7 +605,7 @@ function templatedRSEmptyReader(label, factory) {
 
     var test3 = async_test('releasing the lock with pending read requests should throw but the read requests should stay pending');
     test3.step(function() {
-        var { reader } = factory();
+        var { stream, reader } = factory();
 
         reader.read().then(
             test3.step_func(function() { assert_unreached('first read() should not fulfill'); }),
@@ -610,42 +624,40 @@ function templatedRSEmptyReader(label, factory) {
 
         assert_throws(new TypeError(), function() { reader.releaseLock(); }, 'releaseLock should throw a TypeError');
 
+        assert_true(stream.locked, 'the stream should still be locked');
+
         setTimeout(test3.step_func(function() { test3.done(); }), 1000);
     });
 
-    var test4 = async_test('releasing the lock should cause further read() calls to resolve as if the stream is closed');
+    var test4 = async_test('releasing the lock should cause further read() calls to reject with a TypeError');
     test4.step(function() {
+        var promiseCalls = 0;
         var { reader } = factory();
-        var promisesCount = 0;
 
         reader.releaseLock();
 
-        reader.read().then(test4.step_func(function(r) {
-            assert_object_equals(r, { value: undefined, done: true }, 'first read() should return closed result');
-            ++promisesCount;
+        reader.read().catch(test4.step_func(function(e) {
+            assert_throws(new TypeError(), function() { throw e; }, 'first read() should reject with a TypeError');
+            assert_equals(++promiseCalls, 1);
         }));
-        reader.read().then(test4.step_func(function(r) {
-            assert_object_equals(r, { value: undefined, done: true }, 'second read() should return closed result');
-            assert_equals(++promisesCount, 2);
+        reader.read().catch(test4.step_func(function(e) {
+            assert_throws(new TypeError(), function() { throw e; }, 'second read() should reject with a TypeError');
+            assert_equals(++promiseCalls, 2);
             test4.done();
         }));
     });
 
-    var test5 = async_test('releasing the lock should cause closed to fulfill');
+    var test5 = async_test('releasing the lock should cause closed to reject');
     test5.step(function() {
         var { reader } = factory();
-        var promisesCount = 0;
 
-        reader.closed.then(test5.step_func(function(v) {
-            assert_equals(v, undefined, 'reader.closed got before release should fulfill with undefined');
-            ++promisesCount;
-        }));
-
+        var closedBefore = reader.closed;
         reader.releaseLock();
+        var closedAfter = reader.closed;
 
-        reader.closed.then(test5.step_func(function(v) {
-            assert_equals(v, undefined, 'reader.closed got after release should fulfill with undefined');
-            assert_equals(++promisesCount, 2);
+        assert_equals(closedBefore, closedAfter, 'the closed promise should not change identity')
+        closedBefore.catch(test5.step_func(function(e) {
+            assert_throws(new TypeError(), function() { throw e; }, 'reader.closed should reject with a TypeError');
             test5.done();
         }));
     });
@@ -738,8 +750,29 @@ function templatedRSClosedReader(label, factory) {
         );
     });
 
-    var test5 = async_test('cancel() should return a distinct fulfilled promise each time');
+    var test5 = async_test('releasing the lock should cause closed to reject and change identity');
     test5.step(function() {
+        var promiseCalls = 0;
+        var { reader } = factory();
+
+        var closedBefore = reader.closed;
+        reader.releaseLock();
+        var closedAfter = reader.closed;
+
+        assert_not_equals(closedBefore, closedAfter, 'the closed promise should change identity')
+        closedBefore.then(test5.step_func(function(v) {
+            assert_equals(v, undefined, 'reader.closed acquired before release should fulfill');
+            assert_equals(++promiseCalls, 1);
+        }));
+        closedAfter.catch(test5.step_func(function(e) {
+            assert_throws(new TypeError(), function() { throw e; }, 'reader.closed acquired after release should reject with a TypeError');
+            assert_equals(++promiseCalls, 2);
+            test5.done();
+        }));
+    });
+
+    var test6 = async_test('cancel() should return a distinct fulfilled promise each time');
+    test6.step(function() {
         var { reader } = factory();
         var promiseCount = 0;
         var allChecked = false;
@@ -748,15 +781,15 @@ function templatedRSClosedReader(label, factory) {
         var cancelPromise2 = reader.cancel();
         var closedReaderPromise = reader.closed;
 
-        cancelPromise1.then(test5.step_func(function(v) {
+        cancelPromise1.then(test6.step_func(function(v) {
             assert_equals(v, undefined, 'first cancel() call should fulfill with undefined');
             ++promiseCount;
         }));
-        cancelPromise2.then(test5.step_func(function(v) {
+        cancelPromise2.then(test6.step_func(function(v) {
             assert_equals(v, undefined, 'second cancel() call should fulfill with undefined');
             assert_equals(++promiseCount, 2);
             assert_true(allChecked);
-            test5.done();
+            test6.done();
         }));
         assert_not_equals(cancelPromise1, cancelPromise2, 'cancel() calls should return distinct promises');
         assert_not_equals(cancelPromise1, closedReaderPromise, 'cancel() promise 1 should be distinct from reader.closed');
@@ -782,17 +815,38 @@ function templatedRSErroredReader(label, factory, error) {
         );
     });
 
-    var test2 = async_test('read() should reject with the error');
+    var test2 = async_test('releasing the lock should cause closed to reject and change identity');
     test2.step(function() {
         var { reader } = factory();
 
+        var closedBefore = reader.closed;
+
+        closedBefore.catch(test2.step_func(function(e) {
+            assert_equals(e, error, 'reader.closed acquired before release should reject with the error');
+
+            reader.releaseLock();
+            var closedAfter = reader.closed;
+
+            assert_not_equals(closedBefore, closedAfter, 'the closed promise should change identity');
+
+            return closedAfter.catch(test2.step_func(function(e) {
+                assert_throws(new TypeError(), function() { throw e; }, 'reader.closed acquired after release should reject with a TypeError');
+                test2.done();
+            }));
+        })).catch(test2.step_func(function(e) { assert_unreached(e); }));
+    });
+
+    var test3 = async_test('read() should reject with the error');
+    test3.step(function() {
+        var { reader } = factory();
+
         reader.read().then(
-            test2.step_func(function() {
+            test3.step_func(function() {
                 assert_unreached('read() should not fulfill');
             }),
-            test2.step_func(function(r) {
+            test3.step_func(function(r) {
                 assert_equals(r, error, 'read() should reject with the error');
-                test2.done();
+                test3.done();
             })
         );
     });
@@ -905,16 +959,16 @@ function templatedRSTwoChunksClosedReader(label, factory, chunks) {
         })).catch(test2.step_func(function(e) { assert_unreached(e); }));
     });
 
-    var test3 = async_test('draining the stream via read() should cause the reader closed promise to fulfill and locked to be false');
+    var test3 = async_test('draining the stream via read() should cause the reader closed promise to fulfill, but locked stays true');
     test3.step(function() {
         var { stream, reader } = factory();
-        var readCalled = false;
+
+        assert_true(stream.locked, 'stream should start locked');
 
         reader.closed.then(
             test3.step_func(function(v) {
-                assert_true(readCalled);
                 assert_equals(v, undefined, 'reader closed should fulfill with undefined');
-                assert_false(stream.locked, 'stream should no longer be locked');
+                assert_true(stream.locked, 'stream should remain locked');
                 test3.done();
             }),
             test3.step_func(function() { assert_unreached('reader closed should not reject'); })
@@ -922,45 +976,43 @@ function templatedRSTwoChunksClosedReader(label, factory, chunks) {
 
         reader.read();
         reader.read();
-        readCalled = true;
     });
 
-    var test4 = async_test('releasing the lock after the stream is closed should do nothing');
+    var test4 = async_test('releasing the lock after the stream is closed should cause locked to become false');
     test4.step(function() {
-        var { reader } = factory();
-        var readCalled = false;
+        var { stream, reader } = factory();
 
         reader.closed.then(test4.step_func(function() {
-            assert_true(readCalled);
+            assert_true(stream.locked, 'the stream should start locked');
             reader.releaseLock(); // Releasing the lock after reader closed should not throw.
+            assert_false(stream.locked, 'the stream should end unlocked');
             test4.done();
         }));
 
         reader.read();
         reader.read();
-        readCalled = true;
     });
 
-    var test5 = async_test('releasing the lock should cause read() to act as if the stream is closed');
+    var test5 = async_test('releasing the lock should cause further read() calls to reject with a TypeError');
     test5.step(function() {
-        var { reader } = factory();
         var promiseCalls = 0;
+        var { reader } = factory();
 
         reader.releaseLock();
 
-        reader.read().then(test5.step_func(function(r) {
-            assert_object_equals(r, { value: undefined, done: true }, 'first read() should return closed result');
-            ++promiseCalls;
+        reader.read().catch(test5.step_func(function(e) {
+            assert_throws(new TypeError(), function() { throw e; }, 'first read() should reject with a TypeError');
+            assert_equals(++promiseCalls, 1);
         }));
-        reader.read().then(test5.step_func(function(r) {
-            assert_object_equals(r, { value: undefined, done: true }, 'second read() should return closed result');
-            ++promiseCalls;
+        reader.read().catch(test5.step_func(function(e) {
+            assert_throws(new TypeError(), function() { throw e; }, 'second read() should reject with a TypeError');
+            assert_equals(++promiseCalls, 2);
         }));
-        reader.read().then(test5.step_func(function(r) {
-            assert_object_equals(r, { value: undefined, done: true }, 'third read() should return closed result');
+        reader.read().catch(test5.step_func(function(e) {
+            assert_throws(new TypeError(), function() { throw e; }, 'third read() should reject with a TypeError');
             assert_equals(++promiseCalls, 3);
             test5.done();
-        }))
+        }));
     });
 
     var test6 = async_test('reader\'s closed property always returns the same promise');
@@ -1134,9 +1186,9 @@ templatedRSTwoChunksClosed('ReadableStream (two chunks enqueued, then closed)', 
 templatedRSTwoChunksClosed('ReadableStream (two chunks enqueued async, then closed)', function() {
     return new ReadableStream({
         start: function(c) {
-            setTimeout(function() { c.enqueue(chunks[0]); }, 10);
-            setTimeout(function() { c.enqueue(chunks[1]); }, 20);
-            setTimeout(function() { c.close(); }, 30);
+            setTimeout(function() { c.enqueue(chunks[0]); }, 100);
+            setTimeout(function() { c.enqueue(chunks[1]); }, 200);
+            setTimeout(function() { c.close(); }, 300);
         }
     })},
     chunks
