@@ -35,7 +35,7 @@ test2.step(function() {
     controller.error(rsError);
 
     // Let's call getReader twice to ensure that stream is not locked to a reader.
-    rs.getReader();
+    rs.getReader().releaseLock();
     rs.getReader().closed.then(test2.step_func(function() {
         assert_unreached("closed promise should not be resolved when stream is errored");
     }), test2.step_func(function(err) {
