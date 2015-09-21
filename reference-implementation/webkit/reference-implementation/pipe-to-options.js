@@ -2,6 +2,8 @@ require('../resources/testharness');
 
 require('./utils/streams-utils');
 
+// This is updated till ec5ffa0 of the spec.
+
 var test1 = async_test('Piping with no options and a destination error');
 test1.step(function() {
     var cancelCalled = false;
@@ -9,12 +11,12 @@ test1.step(function() {
     var rs = new ReadableStream({
         start: function(c) {
             c.enqueue('a');
-            setTimeout(test1.step_func(function() { c.enqueue('b'); }), 10);
+            setTimeout(test1.step_func(function() { c.enqueue('b'); }), 200);
             setTimeout(test1.step_func(function() {
                 c.enqueue('c'); // Enqueue after cancel should not throw.
                 assert_true(cancelCalled);
                 test1.done();
-            }), 20);
+            }), 500);
         },
         cancel: function(r) {
             assert_equals(r, theError, 'reason passed to cancel equals the source error');
@@ -40,12 +42,12 @@ test2.step(function() {
     var rs = new ReadableStream({
         start: function(c) {
             c.enqueue('a');
-            setTimeout(test2.step_func(function() { c.enqueue('b'); }), 10);
+            setTimeout(test2.step_func(function() { c.enqueue('b'); }), 200);
             setTimeout(test2.step_func(function() {
                 c.enqueue('c'); // Enqueue after cancel should not throw.
                 assert_true(cancelCalled);
                 test2.done();
-            }), 20);
+            }), 500);
         },
         cancel: function(r) {
             assert_equals(r, theError, 'reason passed to cancel equals the source error');
@@ -70,9 +72,9 @@ test3.step(function() {
     var rs = new ReadableStream({
         start: function(c) {
             c.enqueue('a');
-            setTimeout(test3.step_func(function() { c.enqueue('b'); }), 10);
-            setTimeout(test3.step_func(function() { c.enqueue('c'); }), 20);
-            setTimeout(test3.step_func(function() { c.enqueue('d'); }), 30);
+            setTimeout(test3.step_func(function() { c.enqueue('b'); }), 200);
+            setTimeout(test3.step_func(function() { c.enqueue('c'); }), 400);
+            setTimeout(test3.step_func(function() { c.enqueue('d'); }), 600);
         },
         cancel: function(r) {
             assert_unreached('unexpected call to cancel');

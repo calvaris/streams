@@ -2,6 +2,8 @@ require('../resources/testharness');
 
 require('./utils/streams-utils');
 
+// This is updated till ec5ffa0 of the spec.
+
 var test1 = async_test('Aborting a WritableStream immediately prevents future writes');
 test1.step(function() {
     var chunks = [];
@@ -26,7 +28,7 @@ test2.step(function() {
     var ws = new WritableStream({
         write: function(chunk) {
             chunks.push(chunk);
-            return new Promise(test2.step_func(function(resolve) { setTimeout(test2.step_func(function() { resolve(); }), 50); }));
+            return new Promise(test2.step_func(function(resolve) { setTimeout(test2.step_func(function() { resolve(); }), 200); }));
         }
     });
 
@@ -41,7 +43,7 @@ test2.step(function() {
         setTimeout(test2.step_func(function () {
             assert_array_equals(chunks, [1], 'only the single in-progress chunk gets written');
             test2.done();
-        }), 200);
+        }), 500);
     }), 0);
 });
 
@@ -215,7 +217,7 @@ test9.step(function() {
         ws.abort(passedReason);
 
         assert_equals(ws.state, 'errored');
-    }), 20);
+    }), 200);
 
     ws.closed.then(
         test9.step_func(function() { assert_unreached('the stream should not close successfully'); }),

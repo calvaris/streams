@@ -2,6 +2,8 @@ require('../resources/testharness');
 
 require('./utils/streams-utils');
 
+// This is updated till ec5ffa0 of the spec.
+
 function writeArrayToStream(array, writableStream) {
     array.forEach(function(chunk) { writableStream.write(chunk); })
     return writableStream.close();
@@ -55,7 +57,7 @@ test2.step(function() {
     setTimeout(test2.step_func(function() {
         expectWriteCall = true;
         resolveStartPromise();
-    }), 100);
+    }), 200);
 });
 
 var test3 = async_test('Underlying sink\'s close won\'t be called until start finishes');
@@ -85,7 +87,7 @@ test3.step(function() {
     setTimeout(test3.step_func(function() {
         expectCloseCall = true;
         resolveStartPromise();
-    }), 100);
+    }), 200);
 });
 
 var test4 = async_test('Fulfillment value of ws.close() call must be undefined even if the underlying sink returns a non-undefined value');
@@ -145,7 +147,7 @@ test6.step(function() {
     // Wait and see that write or close won't be called.
     setTimeout(test6.step_func(function() {
         test6.done();
-    }), 100);
+    }), 500);
 });
 
 test(function() {
