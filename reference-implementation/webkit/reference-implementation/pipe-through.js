@@ -2,6 +2,8 @@ require('../resources/testharness');
 
 require('./utils/streams-utils');
 
+// This is updated till ec5ffa0 of the spec.
+
 var test1 = async_test('Piping through a duck-typed pass-through transform stream works');
 test1.step(function() {
     var readableEnd = sequentialReadableStream(5).pipeThrough(duckTypedPassThroughTransform());

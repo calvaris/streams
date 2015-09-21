@@ -2,6 +2,8 @@ require('../resources/testharness');
 
 require('./utils/streams-utils');
 
+// This is updated till ec5ffa0 of the spec.
+
 test(function() {
     new TransformStream({ transform: function() { } }); // TransformStream constructed with no errors.
 }, 'TransformStream can be constructed with a transform function');
