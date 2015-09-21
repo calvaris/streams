@@ -2,6 +2,8 @@ require('../resources/testharness');
 
 require('./utils/streams-utils');
 
+// This is updated till ec5ffa0 of the spec.
+
 var test1 = async_test('Piping from a ReadableStream from which lots of data are readable synchronously');
 test1.step(function() {
     var events = 0;
@@ -512,7 +514,7 @@ test11.step(function() {
             assert_unreached('Unexpected close call');
         },
         abort: function() {
-            test11.done();
+            test11.done('underlying source abort was called');
         }
     });
     ws.write('Hello');
@@ -632,7 +634,7 @@ test13.step(function() {
             assert_equals(pullCount, 2);
 
             test13.done();
-        }), 100);
+        }), 500);
     }));
 });
 
@@ -687,7 +689,7 @@ test14.step(function() {
             assert_equals(pullCount, 1, 'pull should have been called only once');
             assert_true(writeCalled);
             test14.done();
-        }), 50);
+        }), 500);
     }));
 });
 
@@ -946,7 +948,7 @@ test23.step(function() {
         write: function(chunk) {
             return new Promise(test23.step_func(function(resolve, reject) {
                 if (++written > 1) {
-                    setTimeout(test23.step_func(function() { reject(passedError); }), 10);
+                    setTimeout(test23.step_func(function() { reject(passedError); }), 200);
                 } else {
                     resolve();
                 }
@@ -962,11 +964,11 @@ test24.step(function() {
     var desiredSizes = [];
     var rs = new ReadableStream({
         start: function(c) {
-            setTimeout(test24.step_func(function() { enqueue('a'); }), 100);
-            setTimeout(test24.step_func(function() { enqueue('b'); }), 200);
-            setTimeout(test24.step_func(function() { enqueue('c'); }), 300);
-            setTimeout(test24.step_func(function() { enqueue('d'); }), 400);
-            setTimeout(test24.step_func(function() { c.close(); }), 500);
+            setTimeout(test24.step_func(function() { enqueue('a'); }), 200);
+            setTimeout(test24.step_func(function() { enqueue('b'); }), 400);
+            setTimeout(test24.step_func(function() { enqueue('c'); }), 600);
+            setTimeout(test24.step_func(function() { enqueue('d'); }), 800);
+            setTimeout(test24.step_func(function() { c.close(); }), 1000);
 
             function enqueue(chunk) {
                 c.enqueue(chunk);
@@ -988,7 +990,7 @@ test24.step(function() {
                 setTimeout(test24.step_func(function() {
                     chunksFinishedWriting.push(chunk);
                     resolve();
-                }), 350);
+                }), 700);
             }));
         }
     });
@@ -1003,50 +1005,50 @@ test24.step(function() {
         assert_equals(ws.state, 'writable', 'at t = 0 ms, ws should be writable');
 
         setTimeout(test24.step_func(function() {
-            assert_equals(ws.state, 'waiting', 'at t = 125 ms, ws should be waiting');
-            assert_array_equals(chunksGivenToWrite, ['a'], 'at t = 125 ms, ws.write should have been called with one chunk');
-            assert_array_equals(chunksFinishedWriting, [], 'at t = 125 ms, no chunks should have finished writing');
+            assert_equals(ws.state, 'waiting', 'at t = 250 ms, ws should be waiting');
+            assert_array_equals(chunksGivenToWrite, ['a'], 'at t = 250 ms, ws.write should have been called with one chunk');
+            assert_array_equals(chunksFinishedWriting, [], 'at t = 250 ms, no chunks should have finished writing');
 
             // When 'a' (the very first chunk) was enqueued, it was immediately used to fulfill the outstanding read request
             // promise, leaving room in the queue
-            assert_array_equals(desiredSizes, [1], 'at t = 125 ms, the one enqueued chunk in rs did not cause backpressure');
-        }), 125);
+            assert_array_equals(desiredSizes, [1], 'at t = 250 ms, the one enqueued chunk in rs did not cause backpressure');
+        }), 250);
 
         setTimeout(test24.step_func(function() {
-            assert_equals(ws.state, 'waiting', 'at t = 225 ms, ws should be waiting');
-            assert_array_equals(chunksGivenToWrite, ['a'], 'at t = 225 ms, ws.write should have been called with one chunk');
-            assert_array_equals(chunksFinishedWriting, [], 'at t = 225 ms, no chunks should have finished writing');
+            assert_equals(ws.state, 'waiting', 'at t = 450 ms, ws should be waiting');
+            assert_array_equals(chunksGivenToWrite, ['a'], 'at t = 450 ms, ws.write should have been called with one chunk');
+            assert_array_equals(chunksFinishedWriting, [], 'at t = 450 ms, no chunks should have finished writing');
 
             // When 'b' was enqueued at 200 ms, the queue was also empty, since immediately after enqueuing 'a' at
             // t = 100 ms, it was dequeued in order to fulfill the read() call that was made at time t = 0.
-            assert_array_equals(desiredSizes, [1, 1], 'at t = 225 ms, the two enqueued chunks in rs did not cause backpressure');
-        }), 225);
+            assert_array_equals(desiredSizes, [1, 1], 'at t = 450 ms, the two enqueued chunks in rs did not cause backpressure');
+        }), 450);
 
         setTimeout(test24.step_func(function() {
-            assert_equals(ws.state, 'waiting', 'at t = 325 ms, ws should be waiting');
-            assert_array_equals(chunksGivenToWrite, ['a'], 'at t = 325 ms, ws.write should have been called with one chunk');
-            assert_array_equals(chunksFinishedWriting, [], 'at t = 325 ms, no chunks should have finished writing');
+            assert_equals(ws.state, 'waiting', 'at t = 650 ms, ws should be waiting');
+            assert_array_equals(chunksGivenToWrite, ['a'], 'at t = 650 ms, ws.write should have been called with one chunk');
+            assert_array_equals(chunksFinishedWriting, [], 'at t = 650 ms, no chunks should have finished writing');
 
             // When 'c' was enqueued at 300 ms, the queue was again empty, since at time t = 200 ms when 'b' was enqueued,
             // it was immediately dequeued in order to fulfill the second read() call that was made at time t = 0.
             // However, this time there was no pending read request to whisk it away, so after the enqueue desired size is 0.
-            assert_array_equals(desiredSizes, [1, 1, 0], 'at t = 325 ms, the three enqueued chunks in rs did not cause backpressure');
-        }), 325);
+            assert_array_equals(desiredSizes, [1, 1, 0], 'at t = 650 ms, the three enqueued chunks in rs did not cause backpressure');
+        }), 650);
 
         setTimeout(test24.step_func(function() {
-            assert_equals(ws.state, 'waiting', 'at t = 425 ms, ws should be waiting');
-            assert_array_equals(chunksGivenToWrite, ['a'], 'at t = 425 ms, ws.write should have been called with one chunk');
-            assert_array_equals(chunksFinishedWriting, [], 'at t = 425 ms, no chunks should have finished writing');
+            assert_equals(ws.state, 'waiting', 'at t = 850 ms, ws should be waiting');
+            assert_array_equals(chunksGivenToWrite, ['a'], 'at t = 850 ms, ws.write should have been called with one chunk');
+            assert_array_equals(chunksFinishedWriting, [], 'at t = 850 ms, no chunks should have finished writing');
 
             // When 'd' was enqueued at 400 ms, the queue was *not* empty. 'c' was still in it, since the write() of 'b' will
             // not finish until t = 100 ms + 350 ms = 450 ms. Thus backpressure should have been exerted.
-            assert_array_equals(desiredSizes, [1, 1, 0, -1], 'at t = 425 ms, the fourth enqueued chunks in rs did cause backpressure');
-        }), 425);
+            assert_array_equals(desiredSizes, [1, 1, 0, -1], 'at t = 850 ms, the fourth enqueued chunks in rs did cause backpressure');
+        }), 850);
 
         setTimeout(test24.step_func(function() {
-            assert_equals(ws.state, 'waiting', 'at t = 475 ms, ws should be waiting');
-            assert_array_equals(chunksGivenToWrite, ['a', 'b'], 'at t = 475 ms, ws.write should have been called with two chunks');
-            assert_array_equals(chunksFinishedWriting, ['a'], 'at t = 475 ms, one chunk should have finished writing');
-        }), 475);
+            assert_equals(ws.state, 'waiting', 'at t = 950 ms, ws should be waiting');
+            assert_array_equals(chunksGivenToWrite, ['a', 'b'], 'at t = 950 ms, ws.write should have been called with two chunks');
+            assert_array_equals(chunksFinishedWriting, ['a'], 'at t = 950 ms, one chunk should have finished writing');
+        }), 950);
     }));
 });
