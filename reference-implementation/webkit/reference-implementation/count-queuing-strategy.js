@@ -2,6 +2,8 @@ require('../resources/testharness');
 
 require('./utils/streams-utils');
 
+// This is updated till ec5ffa0 of the spec.
+
 test(function() {
     new CountQueuingStrategy({ highWaterMark: 4 });
 }, 'Can construct a CountQueuingStrategy with a valid high water mark');

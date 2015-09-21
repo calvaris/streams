@@ -2,6 +2,8 @@ require('./resources/testharness');
 
 require('./reference-implementation/utils/streams-utils');
 
+// This is updated till ec5ffa0 of the spec.
+
 var test1 = async_test('Reading twice on a stream that gets closed');
 test1.step(function() {
     var controller;
