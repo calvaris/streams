@@ -2,6 +2,8 @@ require('./resources/testharness');
 
 require('./reference-implementation/utils/streams-utils');
 
+// This is updated till https://github.com/whatwg/streams/commit/ec5ffa036308d9f6350d2946560d48cdbf090939
+
 var test1 = async_test('Erroring a ReadableStream after checking closed should reject ReadableStreamReader closed promise');
 test1.step(function() {
     var controller;

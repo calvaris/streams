@@ -2,7 +2,7 @@ require('../resources/testharness');
 
 require('./utils/streams-utils');
 
-// This is updated till ec5ffa0 of the spec.
+// This is updated till https://github.com/whatwg/streams/commit/ec5ffa036308d9f6350d2946560d48cdbf090939
 
 var test1 = async_test('ReadableStream cancellation: integration test on an infinite stream derived from a random push source');
 test1.step(function() {

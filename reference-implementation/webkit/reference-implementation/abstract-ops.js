@@ -4,7 +4,7 @@ require('./utils/streams-utils');
 
 import { IsReadableStreamDisturbed } from '../../lib/readable-stream'
 
-// This is updated till ec5ffa0 of the spec.
+// This is updated till https://github.com/whatwg/streams/commit/ec5ffa036308d9f6350d2946560d48cdbf090939
 
 test(function() {
     var rs = new ReadableStream();

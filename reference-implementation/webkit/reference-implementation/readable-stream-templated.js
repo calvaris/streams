@@ -2,7 +2,7 @@ require('../resources/testharness');
 
 require('./utils/streams-utils');
 
-// This is updated till ec5ffa0 of the spec.
+// This is updated till https://github.com/whatwg/streams/commit/ec5ffa036308d9f6350d2946560d48cdbf090939
 
 function templatedRSEmpty(label, factory) {
     test(function() {
@@ -629,7 +629,7 @@ function templatedRSEmptyReader(label, factory) {
         setTimeout(test3.step_func(function() { test3.done(); }), 1000);
     });
 
-    var test4 = async_test('releasing the lock should cause further read() calls to reject with a TypeError');
+    var test4 = async_test('releasing the lock should cause further read() calls to reject with a TypeError', { timeout: 50 });
     test4.step(function() {
         var promiseCalls = 0;
         var { reader } = factory();
@@ -647,7 +647,7 @@ function templatedRSEmptyReader(label, factory) {
         }));
     });
 
-    var test5 = async_test('releasing the lock should cause closed to reject');
+    var test5 = async_test('releasing the lock should cause closed to reject', { timeout: 50 });
     test5.step(function() {
         var { reader } = factory();
 
@@ -993,7 +993,7 @@ function templatedRSTwoChunksClosedReader(label, factory, chunks) {
         reader.read();
     });
 
-    var test5 = async_test('releasing the lock should cause further read() calls to reject with a TypeError');
+    var test5 = async_test('releasing the lock should cause further read() calls to reject with a TypeError', { timeout: 50});
     test5.step(function() {
         var promiseCalls = 0;
         var { reader } = factory();
