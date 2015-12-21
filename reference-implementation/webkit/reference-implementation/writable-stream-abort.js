@@ -2,7 +2,7 @@ require('../resources/testharness');
 
 require('./utils/streams-utils');
 
-// This is updated till https://github.com/whatwg/streams/commit/ec5ffa036308d9f6350d2946560d48cdbf090939
+// This is updated till https://github.com/whatwg/streams/commit/c942e11025a770d60ab3d4f6541b29e45da518da
 
 var test1 = async_test('Aborting a WritableStream immediately prevents future writes');
 test1.step(function() {

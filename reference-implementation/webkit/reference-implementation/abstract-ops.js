@@ -4,7 +4,7 @@ require('./utils/streams-utils');
 
 import { IsReadableStreamDisturbed } from '../../lib/readable-stream'
 
-// This is updated till https://github.com/whatwg/streams/commit/ec5ffa036308d9f6350d2946560d48cdbf090939
+// This is updated till https://github.com/whatwg/streams/commit/c942e11025a770d60ab3d4f6541b29e45da518da
 
 test(function() {
     var rs = new ReadableStream();

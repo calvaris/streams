@@ -2,7 +2,7 @@ require('../resources/testharness');
 
 require('./utils/streams-utils');
 
-// This is updated till https://github.com/whatwg/streams/commit/ec5ffa036308d9f6350d2946560d48cdbf090939
+// This is updated till https://github.com/whatwg/streams/commit/c942e11025a770d60ab3d4f6541b29e45da518da
 
 function writeArrayToStream(array, writableStream) {
     array.forEach(function(chunk) { writableStream.write(chunk); })
@@ -238,7 +238,7 @@ test9.step(function() {
     }));
 });
 
-var test10 = async_test('Fulfillment value of ws.write() call must be undefined even if the underlying sink returns a non-undefined ovalue');
+var test10 = async_test('Fulfillment value of ws.write() call must be undefined even if the underlying sink returns a non-undefined value');
 test10.step(function() {
     var ws = new WritableStream({
         write: function() {
